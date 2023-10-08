@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-	"type": "module",
-	"scripts": {
-		"build-tsc": "tsc -w",
-		"run-watch": "nodemon ./dist",
-		"dev": "concurrently \"npm run build-tsc\" \"npm run run-watch\""
-	},
+  "type": "module",
+  "scripts": {
+    "build-tsc": "tsc -w",
+    "run-watch": "nodemon ./dist",
+    "dev": "concurrently \"npm run build-tsc\" \"npm run run-watch\""
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -20,7 +20,9 @@
     "jsonwebtoken": "^9.0.2",
     "mysql": "^2.18.1",
     "typeorm": "^0.3.17",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "validator": "^13.11.0",
+    "winston": "^3.11.0"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.22.20",
@@ -29,6 +31,7 @@
     "@types/jest": "^29.5.5",
     "@types/jsonwebtoken": "^9.0.3",
     "@types/node": "^20.8.2",
+    "@types/validator": "^13.11.2",
     "concurrently": "^8.2.1",
     "nodemon": "^3.0.1"
   }
