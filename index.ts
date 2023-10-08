@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import db from "./db/index.js";
+import baseLogger from "./logger.js";
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(express.json());
@@ -15,5 +16,6 @@ app.use((req, res) => {
 
 app.listen(PORT, () => {
   console.log(`App is running and Listening on port ${PORT}`);
+  baseLogger.info(`App is listening on port ${PORT}`);
   db.initialize();
 });
