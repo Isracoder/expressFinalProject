@@ -10,6 +10,7 @@ import { Role } from "./entities/Role.js";
 dotenv.config();
 
 const dataSource = new DataSource({
+  name: "default",
   type: "mysql",
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
