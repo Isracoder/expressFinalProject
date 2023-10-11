@@ -24,4 +24,4 @@ export class Permission extends BaseEntity {
   @ManyToMany(() => Role, { cascade: true })
   roles: Role[];
 }
-// add many to many  with Role ,
+// check rels

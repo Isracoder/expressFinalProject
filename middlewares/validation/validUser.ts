@@ -6,7 +6,7 @@ const validateUser = (
   res: express.Response,
   next: express.NextFunction
 ) => {
-  const values = ["fullName", "email", "password", "type"];
+  const values = ["username", "email", "password", "DOB"];
   const user = req.body;
   const errorList = [];
   // const errorList = values.map(key => !user[key] && `${key} is Required!`).filter(Boolean);
@@ -24,7 +24,7 @@ const validateUser = (
     errorList.push("Password should contain at least 6 characters!");
   }
 
-  if (!["employee", "employer"].includes(user.type)) {
+  if (!["kid", "adult", "teen", "admin", "librarian"].includes(user.type)) {
     errorList.push("User type unknown!");
   }
 

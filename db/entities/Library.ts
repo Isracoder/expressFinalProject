@@ -23,12 +23,27 @@ export class Library extends BaseEntity {
   })
   name: string;
 
+  @Column({
+    type: "enum",
+    enum: ["Bookstore", "Public", "Private", "School", "University"],
+  })
+  type: "Bookstore" | "Public" | "Private" | "School" | "University";
+
+  @Column({
+    // look into setting it as a valid country code , maybe with a constructor
+    // or with a built in function from some library
+    nullable: false,
+  })
+  country: string;
+
+  @Column({ nullable: false })
+  city: string;
+
   @ManyToMany(() => User, { cascade: true })
   users: User[];
 
-  @ManyToMany(() => Book, { cascade: true, eager: true })
-  @JoinTable()
-  Book: Book[];
+  // @ManyToMany(() => Book, { cascade: true, eager: true })
+  // @JoinTable()
+  // Book: Book[];
 }
-// add many to many  with user      --complete
-// , many to many with permission   -- complete
+// check rels

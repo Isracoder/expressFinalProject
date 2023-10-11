@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 import { Role } from "./Role.js";
 import { Genre } from "./Genre.js";
+import { Library } from "./Library.js";
 // import { User } from "../../types/users.js";
 //   import bcrypt from "bcrypt";
 
@@ -18,9 +19,30 @@ export class Book extends BaseEntity {
   id: number;
 
   @Column({ nullable: false, length: 200 })
-  name: string;
+  title: string;
+
+  @Column({})
+  author: string;
+
+  @Column({})
+  ISBN: string;
+
+  @Column({})
+  ageRange: string;
+
+  @Column({})
+  pages: number;
+
+  @Column({})
+  pubYear: number;
+
+  @Column({})
+  language: string;
 
   @ManyToMany(() => Genre, { cascade: true })
   genres: Genre[];
+
+  @ManyToMany(() => Library, {})
+  libraries: Library[];
 }
 // add many to many  with Role ,

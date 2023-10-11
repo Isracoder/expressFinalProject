@@ -12,6 +12,7 @@ import {
 // import { User } from "../../types/users.js";
 import bcrypt from "bcrypt";
 import { Role } from "./Role.js";
+import { Library } from "./Library.js";
 
 @Entity()
 export class User extends BaseEntity {
@@ -19,7 +20,7 @@ export class User extends BaseEntity {
   id: number;
 
   @Column({ length: 100, nullable: false })
-  userName: string;
+  username: string;
 
   @BeforeInsert()
   async hashPassword() {
@@ -36,9 +37,18 @@ export class User extends BaseEntity {
   @Column({ nullable: false })
   DOB: Date;
 
+  @Column({})
+  country: string;
+
+  @Column({})
+  city: string;
+
   @ManyToMany(() => Role, { cascade: true, eager: true })
   @JoinTable()
   roles: Role[];
+
+  @ManyToMany(() => Library, { cascade: true, eager: true })
+  @JoinTable()
+  libraries: Library[];
 }
-// add many to many with role ,     --complete
-//  one to one with profile         --complete
+// check rels

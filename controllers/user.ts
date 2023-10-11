@@ -21,12 +21,12 @@ const login = async (email: string, password: string) => {
     // const secretKey = "kdfjkdjfkd";
     if (user && passwordMatching) {
       console.log("found user and the password matches");
-      console.log(`process.env.escret key ${process.env.SECRET_KEY}`);
+      // console.log(`process.env.escret key ${process.env.SECRET_KEY}`);
       // const token = "jdfd";
       const token = jwt.sign(
         {
           email: user.email,
-          userName: user.userName,
+          username: user.username,
           id: user.id, // user doesn't have a display name property
         },
         process.env.SECRET_KEY || "",
@@ -35,7 +35,7 @@ const login = async (email: string, password: string) => {
           expiresIn: "2w", // 2 weeks
         }
       );
-      console.log(`token in controller  ${token}`);
+      // console.log(`token in controller  ${token}`);
 
       return token;
     } else {
@@ -46,20 +46,22 @@ const login = async (email: string, password: string) => {
   }
 };
 
+// maybe add a profile as a separate from the user ?
 const createUser = async (
   userName: string,
   password: string,
   email: string,
-  firstName: string,
-  lastName: string,
-  dateOfBirth: string
+  DOB: Date,
+  firstName?: string,
+  lastName?: string
 ) => {
   try {
     const user = new User();
     // const profile = new Profile();
-    user.userName = userName;
+    user.username = userName;
     user.email = email;
     user.password = password;
+    user.DOB = DOB;
     // profile.firstName = firstName;
     // profile.lastName = lastName;
     // profile.dateOfBirth = new Date(dateOfBirth);
@@ -110,4 +112,5 @@ const addRoleToUser = async (roleName: Role["name"], id: string | number) => {
     throw "something went wrong";
   }
 };
+
 export { login, createUser, addRoleToUser };

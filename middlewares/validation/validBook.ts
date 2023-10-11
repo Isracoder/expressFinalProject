@@ -1,6 +1,6 @@
 import express from "express";
 
-const validateJob = (
+const validateBook = (
   req: express.Request,
   res: express.Response,
   next: express.NextFunction
@@ -18,4 +18,4 @@ const validateJob = (
   }
 };
 
-export { validateJob };
+export { validateBook };

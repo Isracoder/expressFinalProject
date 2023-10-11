@@ -10,6 +10,7 @@ import {
 import { User } from "./User.js";
 import { Permission } from "./Permission.js";
 // import { User } from "../../types/users.js";
+import { NSUser } from "../../@types/user.js";
 //   import bcrypt from "bcrypt";
 
 @Entity()
@@ -19,11 +20,14 @@ export class Role extends BaseEntity {
 
   @Column({
     type: "enum",
-    enum: ["admin", "user", "editor"],
-    default: "user",
+    enum: ["admin", "adult", "kid", "teen"],
+    default: "adult",
     unique: true,
   })
   name: "user" | "admin" | "editor";
+
+  // @Column({})
+  // name: NSUser.Role; // look into this
 
   @ManyToMany(() => User, { cascade: true })
   users: User[];
