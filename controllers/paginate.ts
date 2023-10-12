@@ -1,6 +1,6 @@
 // import { NSEntity } from "../@types/entity.js";
 import { entities } from "../@types/entity.js";
-import { GetAll } from "../@types/page.js";
+import { GetAll, PaginateEntityList } from "../@types/page.js";
 import { Repository } from "typeorm";
 import dataSource from "../db/index.js";
 
@@ -29,5 +29,21 @@ const paginate = async (payload: GetAll) => {
     info,
   };
 };
+// try to get it to take an entity list in general and then paginate it
+const paginateList = async <T>(payload: PaginateEntityList<T>) => {
+  const page: number = parseInt(payload.page);
+  const pageSize: number = parseInt(payload.pageSize);
 
-export { paginate };
+  if (page != page || pageSize != pageSize) {
+    throw "valid numbers are needed for pagination";
+  }
+  const info = payload.list.slice((page - 1) * pageSize, page * pageSize);
+
+  return {
+    page,
+    pageSize: info.length,
+    total: payload.list.length,
+    info,
+  };
+};
+export { paginate, paginateList };

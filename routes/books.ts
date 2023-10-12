@@ -4,6 +4,7 @@ const router = express.Router();
 const routeName = "Book";
 import { EntityTypes } from "../@types/entity.js";
 import { paginate } from "../controllers/paginate.js";
+import { getBookbyId } from "../controllers/book.js";
 
 router.post("/", async (req, res) => {
   // // const genre = new Genre();
@@ -31,4 +32,22 @@ router.get("/", (req, res) => {
       res.status(500).send("Something went wrong");
     });
 });
+
+router.get("/with", (req, res) => {
+  const { author, title, ISBN } = req.query;
+});
+
+router.get("/id", (req, res) => {
+  const bookid = parseInt(req.body.id);
+  getBookbyId(bookid)
+    .then((data) => {
+      console.log("book found");
+      res.send(data);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.send("Error while retrieving book by id");
+    });
+});
+
 export default router;

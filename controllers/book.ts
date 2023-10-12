@@ -5,7 +5,7 @@ import { Book } from "../db/entities/Book.js";
 import { allowedNodeEnvironmentFlags } from "process";
 dotenv.config();
 
-const findBookIdByAttribute = async (
+const getBookIdsByAttributes = async (
   title?: string,
   author?: string,
   ISBN?: string,
@@ -32,4 +32,68 @@ const findBookIdByAttribute = async (
   return arr;
 };
 
-export { findBookIdByAttribute };
+const getBookbyId = async (bookId: number) => {
+  // if (!["available", "unavailable", "overdue"].includes(status))
+  //   throw "please change book to a valid status";
+  let book = await Book.findOneBy({ id: bookId });
+  if (!book) throw "no book was found by that id";
+  return book;
+};
+
+const getBooksbyTitle = async (title: string) => {
+  // if ()
+  // think of implementing fuzzy searching
+  let books = await Book.find({
+    select: {
+      id: true,
+    },
+    where: [
+      { title: title },
+      { title: title.toLocaleLowerCase() },
+      { title: title.toLocaleUpperCase() },
+    ],
+  });
+  if (!books.length) throw "no book was found by that title";
+  return books;
+};
+
+const getBooksbyAuthor = async (author: string) => {
+  // if ()
+  // think of implementing fuzzy searching
+  let books = await Book.find({
+    select: {
+      id: true,
+    },
+    where: [
+      { author: author },
+      { author: author.toLocaleLowerCase() },
+      { author: author.toLocaleUpperCase() },
+    ],
+  });
+  if (!books.length) throw "no book was found by that author";
+  return books;
+};
+
+const getBookbyISBN = async (ISBN: string) => {
+  // if ()
+  // think of implementing fuzzy searching
+  let books = await Book.find({
+    select: {
+      id: true,
+    },
+    where: [
+      { ISBN: ISBN },
+      { ISBN: ISBN.toLocaleLowerCase() },
+      { ISBN: ISBN.toLocaleUpperCase() },
+    ],
+  });
+  if (!books.length) throw "no book was found by that ISBN";
+  return books;
+};
+
+export {
+  getBookIdsByAttributes,
+  getBookbyId,
+  getBooksbyAuthor,
+  getBooksbyTitle,
+};

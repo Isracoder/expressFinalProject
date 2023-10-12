@@ -6,6 +6,7 @@ import datasource from "../db/index.js";
 import dotenv from "dotenv";
 import { Role } from "../db/entities/Role.js";
 import { Library } from "../db/entities/Library.js";
+import { Book } from "../db/entities/Book.js";
 dotenv.config();
 
 // maybe add a profile as a separate from the user ?

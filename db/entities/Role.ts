@@ -13,6 +13,11 @@ import { Permission } from "./Permission.js";
 import { NSUser } from "../../@types/user.js";
 //   import bcrypt from "bcrypt";
 
+export enum RoleType {
+  user = "user",
+  admin = "admin",
+}
+
 @Entity()
 export class Role extends BaseEntity {
   @PrimaryGeneratedColumn("increment")
@@ -20,11 +25,11 @@ export class Role extends BaseEntity {
 
   @Column({
     type: "enum",
-    enum: ["admin", "adult", "kid", "teen"],
-    default: "adult",
+    enum: RoleType,
+    // default:
     unique: true,
   })
-  name: "user" | "admin" | "editor";
+  name: RoleType;
 
   // @Column({})
   // name: NSUser.Role; // look into this
@@ -36,5 +41,5 @@ export class Role extends BaseEntity {
   @JoinTable()
   permisssions: Permission[];
 }
-// add many to many  with user      --complete
-// , many to many with permission   -- complete
+
+// maybe add before insert turn every string into lowercase

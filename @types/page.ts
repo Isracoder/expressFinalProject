@@ -12,5 +12,9 @@ interface GetAll {
   dbName: keyof EntityTypes;
   // dbName: typeof (User | Library | Permission | Role | Genre | Book) ;
 }
-
-export { GetAll };
+interface PaginateEntityList<T> {
+  page: string;
+  pageSize: string;
+  list: T[];
+}
+export { GetAll, PaginateEntityList };

@@ -6,6 +6,7 @@ import {
   JoinColumn,
   JoinTable,
   ManyToMany,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
@@ -13,6 +14,8 @@ import {
 import bcrypt from "bcrypt";
 import { Role } from "./Role.js";
 import { Library } from "./Library.js";
+import { Book } from "./Book.js";
+import { Review } from "./Review.js";
 
 @Entity()
 export class User extends BaseEntity {
@@ -43,12 +46,29 @@ export class User extends BaseEntity {
   @Column({})
   city: string;
 
-  @ManyToMany(() => Role, { cascade: true, eager: true })
+  @ManyToMany(() => Book)
+  @JoinTable({
+    name: "user-want-list",
+    joinColumn: {
+      name: "userId",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "bookid",
+      referencedColumnName: "id",
+    },
+  })
+  want: Book[];
+
+  @ManyToMany(() => Role, { cascade: true })
   @JoinTable()
   roles: Role[];
 
-  @ManyToMany(() => Library, { cascade: true, eager: true })
+  @ManyToMany(() => Library, { cascade: true })
   @JoinTable()
   libraries: Library[];
+
+  @OneToMany(() => Review, (review) => review.user)
+  reviews: Review[];
 }
 // check rels
