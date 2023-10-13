@@ -9,6 +9,10 @@ import { createUser, login } from "../controllers/user.js";
 import { authenticate } from "../middlewares/auth/authenticate.js";
 import { validateUser } from "../middlewares/validation/validUser.js";
 import { create } from "domain";
+import { Library } from "../db/entities/Library.js";
+import { User } from "../db/entities/User.js";
+import { Book } from "../db/entities/Book.js";
+import { Copy, copyStatus } from "../db/entities/Copy.js";
 
 router.post("/", async (req, res) => {
   // // const genre = new Genre();
@@ -94,5 +98,36 @@ router.post(
       });
   }
 );
+
+// maybe not the best place for this route , users/available ? books/available ? copies/available
+router.get("/available", authenticate, async (req, res) => {
+  try {
+    // const libraries = res.locals.libraries ; // one idea for this approach
+    const user = res.locals.user;
+    if (!(user instanceof User)) {
+      res.send("Make sure the user is correctly logged in");
+      return;
+    }
+    const libraries = await Library.find({ where: { city: user.city } });
+    const wantedBooks = user.wantedBooks;
+    let available: Copy[] = [];
+    libraries.forEach((library) => {
+      library.copies.forEach((copy) => {
+        if (
+          wantedBooks.includes(copy.book) &&
+          copy.status == copyStatus.available
+        )
+          available.push(copy);
+      });
+    });
+    if (!available.length)
+      res.send("No copies that the user wants are currently available");
+    console.log("copies were found");
+    res.send(available); // consider paginating the result
+  } catch (err) {
+    console.log(err);
+    res.send("An error occurred while searching for available wanted books");
+  }
+});
 
 export default router;

@@ -13,6 +13,7 @@ import { Genre } from "./Genre.js";
 import { Library } from "./Library.js";
 import { User } from "./User.js";
 import { Review } from "./Review.js";
+import { Copy } from "./Copy.js";
 // import { User } from "../../types/users.js";
 //   import bcrypt from "bcrypt";
 
@@ -24,7 +25,7 @@ export class Book extends BaseEntity {
   @Column({ nullable: false, length: 200 })
   title: string;
 
-  @Column({})
+  @Column({ nullable: false })
   author: string;
 
   @Column({})
@@ -36,10 +37,10 @@ export class Book extends BaseEntity {
   @Column({})
   pages: number;
 
-  @Column({})
+  @Column({ nullable: false })
   pubYear: number;
 
-  @Column({})
+  @Column({ nullable: false })
   language: string;
 
   @ManyToMany(() => Genre, { cascade: true })
@@ -48,10 +49,15 @@ export class Book extends BaseEntity {
   @ManyToMany(() => Library, {})
   libraries: Library[];
 
-  @ManyToMany(() => User, {})
-  users: User[];
+  @ManyToMany(() => User, (user) => user.wantedBooks)
+  usersThatWant: User[];
+
+  @ManyToMany(() => User, (user) => user.giveawayBooks)
+  usersGiveaway: User[];
 
   @OneToMany(() => Review, (review) => review.book)
   reviews: Review[];
+  @OneToMany(() => Copy, (copy) => copy.book)
+  copies: Copy[];
 }
 // add many to many  with Role ,

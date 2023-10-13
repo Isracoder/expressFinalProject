@@ -1,4 +1,5 @@
 import { Book } from "../db/entities/Book.js";
+import { Copy } from "../db/entities/Copy.js";
 import { Genre } from "../db/entities/Genre.js";
 import { Library } from "../db/entities/Library.js";
 import { Permission } from "../db/entities/Permission.js";
@@ -34,6 +35,7 @@ interface EntityTypes {
   Role: typeof Role;
   Permission: typeof Permission;
   Review: typeof Review;
+  Copy: typeof Copy;
 }
 
 const entities: EntityTypes = {
@@ -44,6 +46,7 @@ const entities: EntityTypes = {
   Role,
   Permission,
   Review,
+  Copy,
   // ... add other entities here
 };
 

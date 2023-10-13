@@ -5,10 +5,12 @@ import {
   Entity,
   JoinTable,
   ManyToMany,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { Book } from "./Book.js";
 import { User } from "./User.js";
+import { Copy } from "./Copy.js";
 //   import { Permission } from "./Permission.js";
 // import { User } from "../../types/users.js";
 //   import bcrypt from "bcrypt";
@@ -42,8 +44,7 @@ export class Library extends BaseEntity {
   @ManyToMany(() => User, { cascade: true })
   users: User[];
 
-  // @ManyToMany(() => Book, { cascade: true, eager: true })
-  // @JoinTable()
-  // Book: Book[];
+  @OneToMany(() => Copy, (copy) => copy.book)
+  copies: Copy[];
 }
 // check rels

@@ -1,6 +1,7 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../../db/entities/User.js";
+import { Library } from "../../db/entities/Library.js";
 
 const authenticate = async (
   req: express.Request,
@@ -21,7 +22,9 @@ const authenticate = async (
   if (tokenIsValid) {
     const decoded = jwt.decode(token, { json: true });
     const user = await User.findOneBy({ email: decoded?.email || "" });
+
     res.locals.user = user;
+    res.locals.libraries = user?.libraries;
     next();
   } else {
     res.status(401).send("You are Unauthorized!");

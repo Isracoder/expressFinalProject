@@ -58,7 +58,21 @@ export class User extends BaseEntity {
       referencedColumnName: "id",
     },
   })
-  want: Book[];
+  wantedBooks: Book[];
+
+  @ManyToMany(() => Book)
+  @JoinTable({
+    name: "user-giveaway-list",
+    joinColumn: {
+      name: "userId",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "bookid",
+      referencedColumnName: "id",
+    },
+  })
+  giveawayBooks: Book[];
 
   @ManyToMany(() => Role, { cascade: true })
   @JoinTable()
