@@ -33,9 +33,9 @@ jobs:
         uses: khaledez/configure-docker-host@v1
         with:
           # ip of ec2 instance
-          host: 3.79.110.23
+          host: 3.75.178.51
           user: github
-          ssh-private-key: ${{ secrets.DEP2_KEY }}
+          ssh-private-key: ${{ secrets.DEP3_KEY }}
       - name: deploy
         run: docker compose -f docker-compose-prod.yml up -d
         env:
