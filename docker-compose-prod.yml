@@ -6,7 +6,7 @@ services:
     image: mysql
     environment:
       - MYSQL_ROOT_PASSWORD=$DB_PASSWORD
-      - MYSQL_DATABASE=$DB_NAME
+      - MYSQL_DATABASE=FinalProject
     volumes:
       - db-data:/var/lib/mysql
     ports:
@@ -23,9 +23,9 @@ services:
     environment:
       - PORT=79
       - DB_HOST=mysql
-      - DB_USER=$DB_USER
+      - DB_USER=root
       - DB_PASSWORD=$DB_PASSWORD
-      - DB_NAME=$DB_NAME
+      - DB_NAME=FinalProject
     ports:
       - "80:80"
     # healthcheck:
