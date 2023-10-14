@@ -24,7 +24,7 @@ export enum copyStatus {
 export class Copy extends BaseEntity {
   @PrimaryGeneratedColumn("increment")
   id: number;
-  @ManyToOne(() => Book, (book) => book.copies, { cascade: true })
+  @ManyToOne(() => Book, (book) => book.copies)
   @JoinColumn()
   book: Book;
 

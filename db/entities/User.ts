@@ -16,6 +16,7 @@ import { Role } from "./Role.js";
 import { Library } from "./Library.js";
 import { Book } from "./Book.js";
 import { Review } from "./Review.js";
+import { reverse } from "dns";
 
 @Entity()
 export class User extends BaseEntity {
@@ -84,5 +85,8 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Review, (review) => review.user)
   reviews: Review[];
+
+  @ManyToMany(() => User)
+  friends: User[];
 }
 // check rels

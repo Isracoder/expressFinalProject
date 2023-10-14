@@ -13,6 +13,7 @@ import { Library } from "../db/entities/Library.js";
 import { User } from "../db/entities/User.js";
 import { Book } from "../db/entities/Book.js";
 import { Copy, copyStatus } from "../db/entities/Copy.js";
+import { FileWatcherEventKind } from "typescript";
 
 router.post("/", async (req, res) => {
   // // const genre = new Genre();
@@ -127,6 +128,82 @@ router.get("/available", authenticate, async (req, res) => {
   } catch (err) {
     console.log(err);
     res.send("An error occurred while searching for available wanted books");
+  }
+});
+
+router.post("/friend", authenticate, async (req, res) => {
+  try {
+    const user = res.locals.user;
+    if (!(user instanceof User)) {
+      res.send("The user must be signed in");
+      return;
+    }
+    const friendId = parseInt(req.body.id);
+    if (isNaN(friendId)) res.send("Make sure the user id is a number");
+    const friend = await User.findOneBy({ id: friendId });
+    if (!friend) {
+      res.send("No friend was found by that id");
+      return;
+    }
+    if (user.friends.includes(friend)) res.send("You are already friends");
+    user.friends.push(friend);
+    // if this doesn't automatically add the friend from the other side
+    // then i need to add friend.friends.push(user)
+    await user.save();
+    res.send("Friend added successfully");
+  } catch (err) {
+    console.log(err);
+    res.send("Error while adding a friend");
+  }
+});
+
+router.delete("/friend", authenticate, async (req, res) => {
+  try {
+    const user = res.locals.user;
+    if (!(user instanceof User)) {
+      res.send("The user must be signed in");
+      return;
+    }
+    const friendId = parseInt(req.body.id);
+    if (isNaN(friendId)) res.send("Make sure the user id is a number");
+    const friend = await User.findOneBy({ id: friendId });
+    if (!friend) {
+      res.send("No friend was found by that id");
+      return;
+    }
+    if (!user.friends.includes(friend)) res.send("You are not friends");
+    user.friends = user.friends.filter((person) => person != friend);
+    await user.save();
+    // if this doesn't remove from other side then filter friends.friends
+    res.send("Friend removed successfully");
+  } catch (err) {
+    console.log(err);
+    res.send("Error while deleting a friend");
+  }
+});
+
+router.get("/giveaway", authenticate, async (req, res) => {
+  try {
+    const user = res.locals.user;
+    if (!(user instanceof User)) {
+      throw "Get valid user from login !";
+    }
+    const wantedList = user.wantedBooks;
+    const usersInSameCity = await User.find({ where: { city: user.city } });
+    const giveaway: Object[] = [];
+    wantedList.forEach((wantedBook) => {
+      usersInSameCity.forEach((person) => {
+        if (person != user && person.giveawayBooks.includes(wantedBook)) {
+          giveaway.push({ user: person, book: wantedBook });
+        }
+      });
+    });
+    if (!giveaway.length)
+      res.send("No users in your city are giving away books that you want");
+    res.send(giveaway);
+  } catch (err) {
+    console.log(err);
+    res.send("Error while searching for wanted books in giveaway lists");
   }
 });
 

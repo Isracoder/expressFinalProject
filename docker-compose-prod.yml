@@ -6,7 +6,7 @@ services:
     image: mysql
     environment:
       - MYSQL_ROOT_PASSWORD=$DB_PASSWORD
-      - MYSQL_DATABASE=express-docker
+      - MYSQL_DATABASE=$DB_NAME
     volumes:
       - db-data:/var/lib/mysql
     ports:
@@ -18,14 +18,14 @@ services:
     restart: always
 
   app:
-    image:  ghcr.io/isracoder/express-docker-fork:$GIT_VERSION
+    image:  ghcr.io/isracoder/FinalProject:$GIT_VERSION
     restart: always 
     environment:
       - PORT=79
       - DB_HOST=mysql
-      - DB_USER=root
+      - DB_USER=$DB_USER
       - DB_PASSWORD=$DB_PASSWORD
-      - DB_NAME=FinalProject
+      - DB_NAME=$DB_NAME
     ports:
       - "80:80"
     # healthcheck:

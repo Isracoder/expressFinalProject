@@ -20,6 +20,6 @@ RUN npm run build
 HEALTHCHECK --interval=20s --timeout=3s \
     CMD curl -f http://localhost || exit 1
 
-CMD node ./dist/main.js
+CMD node ./dist/index.js
 
 # When running the container, execute the following command
