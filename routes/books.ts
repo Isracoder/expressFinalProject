@@ -9,7 +9,8 @@ import { Book } from "../db/entities/Book.js";
 import dataSource from "../db/index.js";
 import { authenticate } from "../middlewares/auth/authenticate.js";
 import { User } from "../db/entities/User.js";
-import { allowedNodeEnvironmentFlags } from "process";
+import { RoleType } from "../db/entities/Role.js";
+import { PermissionName } from "../db/entities/Permission.js";
 
 const validYear = (year: number) => {
   const date = new Date();
@@ -20,30 +21,38 @@ const validYear = (year: number) => {
   return true;
 };
 
-router.post("/", async (req, res) => {
-  try {
-    const { title, author, language } = req.body;
-    const pubYear = parseInt(req.body.pubYear);
-    if (!validYear(pubYear) || !title || !author || !language) {
-      res.send(
-        "Please enter required book info correctly (pubYear , title , author , language) "
-      );
+// adding a new book to the overall website , not for any specific library
+router.post(
+  "/",
+  authenticate,
+  authorize(PermissionName.adminAccess),
+  async (req, res) => {
+    try {
+      const { title, author, language } = req.body;
+      const pubYear = parseInt(req.body.pubYear);
+      if (!validYear(pubYear) || !title || !author || !language) {
+        res.send(
+          "Please enter required book info correctly (pubYear , title , author , language) "
+        );
+      }
+      const book = new Book();
+      book.title = title;
+      book.language = language;
+      book.author = author;
+      book.pubYear = pubYear;
+      // add more stuff for book
+      await book.save();
+      // book = {...book}
+
+      res.send(`${routeName} created successfully`);
+    } catch (err) {
+      console.log(err);
+      res.send(`Error creating ${routeName}`);
     }
-    const book = new Book();
-    book.title = title;
-    book.language = language;
-    book.author = author;
-    book.pubYear = pubYear;
-    await book.save();
-    // book = {...book}
-
-    res.send(`${routeName} created successfully`);
-  } catch (err) {
-    console.log(err);
-    res.send(`Error creating ${routeName}`);
   }
-});
+);
 
+// getting all books
 router.get("/", (req, res) => {
   // res.send(`In ${routeName} router`);
 
@@ -64,6 +73,7 @@ router.get("/", (req, res) => {
     });
 });
 
+// getting books with specific properties
 router.get("/with", async (req, res) => {
   try {
     const { author, title, language } = req.query;
@@ -88,6 +98,7 @@ router.get("/with", async (req, res) => {
   }
 });
 
+// getting a book by id
 router.get("/id", (req, res) => {
   const bookid = parseInt(req.body.id);
   getBookbyId(bookid)
@@ -101,22 +112,14 @@ router.get("/id", (req, res) => {
     });
 });
 
-router.post("/want", authenticate, async (req, res) => {
+//  adding a book to the want list
+router.put("/want", authenticate, async (req, res) => {
   try {
     const user = res.locals.user; //fix this
     // const user = await User.findOneBy({ id: 1 }); // temporary !!
-    if (!(user instanceof User)) {
-      res.send("Please send a valid user , you must be logged in");
-      return;
-    }
-    const id = parseInt(req.body.id);
-    if (isNaN(id)) res.send("Please enter book id");
-    const book = await Book.findOneBy({ id });
-    if (!book) {
-      res.send("No book was found with that id");
-      return;
-    }
-    user.wantedBooks = [...user.wantedBooks, book];
+    if (!(user instanceof User)) throw "User must be valid and logged in";
+    const book = await getBookbyId(req.body.id);
+    user.wantedBooks.push(book);
     await user.save();
     res.send("Book added to want list successfully");
   } catch (err) {
@@ -125,23 +128,14 @@ router.post("/want", authenticate, async (req, res) => {
   }
 });
 
-router.post("/giveaway", authenticate, async (req, res) => {
+// adding a book to the giveaway list
+router.put("/giveaway", authenticate, async (req, res) => {
   try {
     const user = res.locals.user; //fix this
-    // const user = await User.findOneBy({ id: 1 }); // temporary !!
-    if (!(user instanceof User)) {
-      res.send("Please send a valid user , you must be logged in");
-      return;
-    }
-    const id = parseInt(req.body.id);
-    if (isNaN(id)) res.send("Please enter book id");
-    const book = await Book.findOneBy({ id });
-    if (!book) {
-      res.send("No book was found with that id");
-      return;
-    }
+    if (!(user instanceof User)) throw "User must be valid and logged in";
+    const book = await getBookbyId(req.body.id);
     // add book to giveaway list
-    user.giveawayBooks = [...user.giveawayBooks, book];
+    user.giveawayBooks.push(book);
     await user.save();
     res.send("Book added to giveaway list successfully");
   } catch (err) {
@@ -150,21 +144,12 @@ router.post("/giveaway", authenticate, async (req, res) => {
   }
 });
 
+// removing the book from the want list regardless if it was there in the first place or not , maybe change this
 router.delete("/want", authenticate, async (req, res) => {
   try {
     const user = res.locals.user; //fix this
-    // const user = await User.findOneBy({ id: 1 }); // temporary !!
-    if (!(user instanceof User)) {
-      res.send("Please send a valid user , you must be logged in");
-      return;
-    }
-    const id = parseInt(req.body.id);
-    if (isNaN(id)) res.send("Please enter book id");
-    const book = await Book.findOneBy({ id });
-    if (!book) {
-      res.send("No book was found with that id");
-      return;
-    }
+    if (!(user instanceof User)) throw "User must be valid and logged in";
+    const book = await getBookbyId(req.body.id);
     user.wantedBooks = user.wantedBooks.filter(
       (wantedBook) => wantedBook != book
     );
@@ -176,21 +161,12 @@ router.delete("/want", authenticate, async (req, res) => {
   }
 });
 
+// "    "     "   "    the giveaway list     "      "      "       "
 router.delete("/giveaway", async (req, res) => {
   try {
     const user = res.locals.user; //fix this
-    // const user = await User.findOneBy({ id: 1 }); // temporary !!
-    if (!(user instanceof User)) {
-      res.send("Please send a valid user , you must be logged in");
-      return;
-    }
-    const id = parseInt(req.body.id);
-    if (isNaN(id)) res.send("Please enter book id");
-    const book = await Book.findOneBy({ id });
-    if (!book) {
-      res.send("No book was found with that id");
-      return;
-    }
+    if (!(user instanceof User)) throw "User must be valid and logged in";
+    const book = await getBookbyId(req.body.id);
     // add book to giveaway list
     user.giveawayBooks = user.giveawayBooks.filter(
       (giveBook) => giveBook != book

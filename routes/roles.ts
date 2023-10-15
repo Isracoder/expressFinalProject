@@ -4,14 +4,33 @@ const router = express.Router();
 const routeName = "Role";
 import { EntityTypes } from "../@types/entity.js";
 import { paginate } from "../controllers/paginate.js";
+import { Role, RoleType } from "../db/entities/Role.js";
+import { addRoleToUser } from "../controllers/user.js";
+import { authenticate } from "../middlewares/auth/authenticate.js";
+import { PermissionName } from "../db/entities/Permission.js";
+import { getRolebyName } from "../controllers/role&permissions.js";
 
-router.post("/", async (req, res) => {
-  // // const genre = new Genre();
-  // genre.name = req.body.name;
-  // await genre.save();
-  res.send(`${routeName} created successfully`);
-});
+// should authorize so only an admin can add new roles
+router.post(
+  "/",
+  authenticate,
+  authorize(PermissionName.adminAccess),
+  async (req, res) => {
+    try {
+      if (!Object.values(RoleType).includes(req.body.name))
+        throw "Invalid role name";
+      const role = new Role();
+      role.name = req.body.name;
+      await role.save();
+      res.send(`${routeName} created successfully`);
+    } catch (error) {
+      console.log(error);
+      res.send("Error while creating role");
+    }
+  }
+);
 
+// gets all roles
 router.get("/", (req, res) => {
   // res.send(`In ${routeName} router`);
 
@@ -31,4 +50,34 @@ router.get("/", (req, res) => {
       res.status(500).send("Something went wrong");
     });
 });
+
+// gets permissions for a specific role
+router.get("/permissions", async (req, res) => {
+  try {
+    const roleName = req.body.name;
+    const role = await getRolebyName(roleName);
+    console.log("role found , here are the permissions");
+    res.send(role.permisssions);
+  } catch (err) {
+    console.log(err);
+    res.send("Error while getting permissions for that role");
+  }
+});
+
+// assigns role to user
+router.put(
+  "/user",
+  authenticate,
+  authorize(PermissionName.adminAccess),
+  async (req, res) => {
+    try {
+      const user = await addRoleToUser(req.body.roleName, req.body.id);
+      res.send("Role added successfully");
+    } catch (err) {
+      console.log(err);
+      res.send("Error while assigning role to user");
+    }
+  }
+);
+
 export default router;

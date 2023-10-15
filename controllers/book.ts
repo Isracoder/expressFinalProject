@@ -32,9 +32,8 @@ const getBookIdsByAttributes = async (
   return arr;
 };
 
-const getBookbyId = async (bookId: number) => {
-  // if (!["available", "unavailable", "overdue"].includes(status))
-  //   throw "please change book to a valid status";
+const getBookbyId = async (bookId: number | string) => {
+  if (typeof bookId === "string") bookId = parseInt(bookId);
   let book = await Book.findOneBy({ id: bookId });
   if (!book) throw "no book was found by that id";
   return book;

@@ -11,6 +11,7 @@ import {
 import { Book } from "./Book.js";
 import { User } from "./User.js";
 import { Copy } from "./Copy.js";
+import { Librarian } from "./Librarian.js";
 //   import { Permission } from "./Permission.js";
 // import { User } from "../../types/users.js";
 //   import bcrypt from "bcrypt";
@@ -46,5 +47,8 @@ export class Library extends BaseEntity {
 
   @OneToMany(() => Copy, (copy) => copy.book)
   copies: Copy[];
+
+  @OneToMany(() => Librarian, (librarian) => librarian.library)
+  librarians: Librarian[];
 }
 // check rels

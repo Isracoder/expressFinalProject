@@ -82,21 +82,16 @@ const createUser = async (
 
 const addRoleToUser = async (roleName: Role["name"], id: string | number) => {
   try {
-    console.log("hi");
-
-    console.log(roleName);
     const role = await Role.findOneBy({ name: roleName });
-    // const role = true;
-    console.log("ho");
 
     const user = await User.findOneBy({ id: Number(id) });
     if (role && user) {
       console.log("user found and role found");
       try {
-        user.roles = [...user.roles, role];
+        user.roles.push(role);
         await user.save();
         console.log("user Updated");
-        return Promise.resolve(user);
+        return user;
       } catch (error) {
         console.log(error);
         throw "something went wrong";
@@ -113,4 +108,12 @@ const addRoleToUser = async (roleName: Role["name"], id: string | number) => {
   }
 };
 
-export { login, createUser, addRoleToUser };
+const getUserById = async (userId: number | string) => {
+  if (typeof userId == "string") userId = parseInt(userId);
+  if (!userId) throw "Not a valid input for the user id";
+  const user = await User.findOneBy({ id: userId });
+  if (user) return user;
+  throw "User not found";
+};
+
+export { login, createUser, addRoleToUser, getUserById };

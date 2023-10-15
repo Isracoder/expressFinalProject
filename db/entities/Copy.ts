@@ -32,6 +32,12 @@ export class Copy extends BaseEntity {
   @JoinColumn()
   library: Library;
 
-  @Column()
+  @Column({
+    type: "enum",
+    enum: copyStatus,
+    default: copyStatus.available,
+  })
   status: copyStatus;
 }
+// consider adding a due date column ,
+// or a column that is either a due date (for free libraries) or num of copies (for bookstores)

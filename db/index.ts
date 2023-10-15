@@ -8,6 +8,7 @@ import { Library } from "./entities/Library.js";
 import { Permission } from "./entities/Permission.js";
 import { Role } from "./entities/Role.js";
 import { Review } from "./entities/Review.js";
+import { Copy } from "./entities/Copy.js";
 dotenv.config();
 
 const dataSource = new DataSource({
@@ -18,7 +19,7 @@ const dataSource = new DataSource({
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  entities: [User, Book, Genre, Library, Permission, Role, Review],
+  entities: [User, Review, Genre, Library, Permission, Role, Book, Copy],
   synchronize: true,
   // logging: true,
 });

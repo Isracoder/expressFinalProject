@@ -9,6 +9,7 @@ import {
   ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
 } from "typeorm";
 import { User } from "./User.js";
 import { Book } from "./Book.js";
@@ -21,12 +22,14 @@ export class Review extends BaseEntity {
   @Column({})
   text: string;
 
-  @ManyToOne(() => Book, (Book) => Book.reviews, { cascade: true })
+  @ManyToOne(() => Book, (book) => book.reviews)
   @JoinColumn()
-  book: Book;
+  book: Relation<Book>;
+
   @ManyToOne(() => User, (user) => user.reviews, { cascade: true })
   @JoinColumn()
-  user: User;
+  user: Relation<User>;
+
   @Column({})
   createdAt: Date;
 
@@ -35,13 +38,4 @@ export class Review extends BaseEntity {
 
   @Column({})
   imageUrl: string; // change it later to store the aws s3 link
-
-  // try this later in testing to make sure it works
-  // constructor(stars: number) {
-  //   super();
-  //   if (stars < 1 || stars > 5) {
-  //     throw new Error("Stars must be between 1 and 5.");
-  //   }
-  //   this.stars = stars;
-  // }
 }

@@ -11,10 +11,12 @@ import { Role } from "./Role.js";
 // import { User } from "../../types/users.js";
 //   import bcrypt from "bcrypt";
 
-export enum PermissionType {
+export enum PermissionName {
   addBook = "addBook",
   deleteBook = "deleteBook",
-  changeStatus = "changeStatus",
+  // changeStatus = "changeStatus",
+  librarianAccess = "librarianAccess",
+  adminAccess = "adminAccess",
 }
 
 @Entity()
@@ -25,9 +27,9 @@ export class Permission extends BaseEntity {
   @Column({
     unique: true,
     type: "enum",
-    enum: PermissionType,
+    enum: PermissionName,
   })
-  name: PermissionType;
+  name: PermissionName;
 
   @ManyToMany(() => Role, { cascade: true })
   roles: Role[];

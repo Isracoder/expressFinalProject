@@ -4,9 +4,10 @@ import bcrypt from "bcrypt";
 // import { Profile } from "../db/entities/Profile.js";
 import datasource from "../db/index.js";
 import dotenv from "dotenv";
-import { Role } from "../db/entities/Role.js";
+import { Role, RoleType } from "../db/entities/Role.js";
 import { Library } from "../db/entities/Library.js";
 import { Book } from "../db/entities/Book.js";
+import { Librarian } from "../db/entities/Librarian.js";
 dotenv.config();
 
 // maybe add a profile as a separate from the user ?
@@ -31,4 +32,20 @@ const createLibrary = async (
   }
 };
 
-export { createLibrary };
+const checkLibrarian = async (lib: Library, user: User) => {
+  const librarian = await Librarian.findOneBy({ userId: user.id });
+  if (librarian && librarian.library === lib) return true;
+  throw "That librarian isn't valid for this library";
+};
+
+const getLibraryById = async (libId: number | string) => {
+  if (typeof libId === "string") libId = parseInt(libId);
+  if (!libId) throw "Not a valid library id";
+  const library = await Library.findOneBy({ id: libId });
+  if (!library) {
+    throw "No library with that id in our database";
+  }
+  return library;
+};
+
+export { createLibrary, checkLibrarian, getLibraryById };

@@ -14,6 +14,7 @@ import { User } from "../db/entities/User.js";
 import { Book } from "../db/entities/Book.js";
 import { Copy, copyStatus } from "../db/entities/Copy.js";
 import { FileWatcherEventKind } from "typescript";
+import { FindRelationsNotFoundError } from "typeorm";
 
 router.post("/", async (req, res) => {
   // // const genre = new Genre();
@@ -204,6 +205,31 @@ router.get("/giveaway", authenticate, async (req, res) => {
   } catch (err) {
     console.log(err);
     res.send("Error while searching for wanted books in giveaway lists");
+  }
+});
+
+router.get("/friend-recs", authenticate, async (req, res) => {
+  try {
+    const user = res.locals.user;
+    if (!(user instanceof User)) throw "Get valid user from login";
+    const bookRecs: Object[] = [];
+    user.friends.forEach((friend) => {
+      friend.reviews.forEach((review) => {
+        if (review.stars >= 3.5) {
+          bookRecs.push({
+            book: review.book,
+            rating: review.stars,
+            friend: friend.username,
+          });
+        }
+      });
+    });
+    if (!bookRecs.length)
+      res.send("No book recommendations from friend reviews");
+    res.send(bookRecs);
+  } catch (error) {
+    console.log(error);
+    res.send("Error while getting recommendations");
   }
 });
 

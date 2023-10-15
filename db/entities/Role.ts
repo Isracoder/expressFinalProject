@@ -16,6 +16,7 @@ import { NSUser } from "../../@types/user.js";
 export enum RoleType {
   user = "user",
   admin = "admin",
+  librarian = "librarian",
 }
 
 @Entity()
@@ -30,9 +31,6 @@ export class Role extends BaseEntity {
     unique: true,
   })
   name: RoleType;
-
-  // @Column({})
-  // name: NSUser.Role; // look into this
 
   @ManyToMany(() => User, { cascade: true })
   users: User[];

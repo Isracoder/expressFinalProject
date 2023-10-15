@@ -5,14 +5,35 @@ const routeName = "Permission";
 
 import { EntityTypes } from "../@types/entity.js";
 import { paginate } from "../controllers/paginate.js";
+import { authenticate } from "../middlewares/auth/authenticate.js";
+import { Permission, PermissionName } from "../db/entities/Permission.js";
+import {
+  getPermissionbyId,
+  getPermissionbyName,
+  getRolebyName,
+} from "../controllers/role&permissions.js";
 
-router.post("/", async (req, res) => {
-  // // const genre = new Genre();
-  // genre.name = req.body.name;
-  // await genre.save();
-  res.send(`${routeName} created successfully`);
-});
-
+// posts a new permission
+router.post(
+  "/",
+  authenticate,
+  authorize(PermissionName.adminAccess),
+  async (req, res) => {
+    try {
+      const name = req.body.name;
+      if (!Object.values(PermissionName).includes(name))
+        throw "Invalid permission name";
+      const permission = new Permission();
+      permission.name = name;
+      await permission.save();
+      res.send(`${routeName} created successfully`);
+    } catch (err) {
+      console.log(err);
+      res.send("Error creating new permission in db");
+    }
+  }
+);
+// gets all permissions
 router.get("/", (req, res) => {
   // res.send(`In ${routeName} router`);
 
@@ -32,5 +53,26 @@ router.get("/", (req, res) => {
       res.status(500).send("Something went wrong");
     });
 });
+
+// adds a permission to a role , only admin
+router.put(
+  "/role",
+  authenticate,
+  authorize(PermissionName.adminAccess),
+  async (req, res) => {
+    try {
+      const roleName = req.body.roleName;
+      const permName = req.body.permission;
+      const permission = await getPermissionbyName(permName);
+      const role = await getRolebyName(roleName);
+      role.permisssions.push(permission);
+      await role.save();
+      res.send("Permission added to role successfully");
+    } catch (err) {
+      console.log(err);
+      res.send("Error while adding a permission to a role");
+    }
+  }
+);
 
 export default router;
