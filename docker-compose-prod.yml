@@ -18,7 +18,7 @@ services:
     restart: always
 
   app:
-    image:  ghcr.io/isracoder/finalproject:$GIT_VERSION
+    image:  ghcr.io/isracoder/expressfinalproject:$GIT_VERSION
     restart: always 
     environment:
       - PORT=79

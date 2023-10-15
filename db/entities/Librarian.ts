@@ -9,6 +9,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Relation,
 } from "typeorm";
 import { Book } from "./Book.js";
 import { User } from "./User.js";
@@ -25,7 +26,7 @@ export class Librarian extends BaseEntity {
 
   @ManyToOne(() => Library, (library) => library.librarians)
   @JoinColumn()
-  library: Library;
+  library: Relation<Library>;
 
   @Column({ nullable: false, unique: true })
   userId: number;

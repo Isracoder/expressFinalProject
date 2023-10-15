@@ -6,6 +6,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
 } from "typeorm";
 import { Role } from "./Role.js";
 import { Genre } from "./Genre.js";
@@ -30,7 +31,7 @@ export class Copy extends BaseEntity {
 
   @ManyToOne(() => Library, (library) => library.copies)
   @JoinColumn()
-  library: Library;
+  library: Relation<Library>;
 
   @Column({
     type: "enum",

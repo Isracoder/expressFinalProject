@@ -26,14 +26,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: build the docker image
-        run: docker build . --file Dockerfile --tag ghcr.io/isracoder/finalproject:${{ steps.image-version.outputs.gitsha }}
+        run: docker build . --file Dockerfile --tag ghcr.io/isracoder/expressfinalproject:${{ steps.image-version.outputs.gitsha }}
       - name: Publish docker image
-        run: docker push ghcr.io/isracoder/finalproject:${{ steps.image-version.outputs.gitsha }}
+        run: docker push ghcr.io/isracoder/expressfinalproject:${{ steps.image-version.outputs.gitsha }}
       - name: configure docker host
         uses: khaledez/configure-docker-host@v1
         with:
           # ip of ec2 instance
-          host: 3.75.178.51
+          host: 18.193.118.190
           user: github
           ssh-private-key: ${{ secrets.DEP3_KEY }}
       - name: deploy
