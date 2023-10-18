@@ -5,7 +5,7 @@ const routeName = "Role";
 import { EntityTypes } from "../@types/entity.js";
 import { paginate } from "../controllers/paginate.js";
 import { Role, RoleType } from "../db/entities/Role.js";
-import { addRoleToUser } from "../controllers/user.js";
+import { addRoleToUser, removeRoleFromUser } from "../controllers/user.js";
 import { authenticate } from "../middlewares/auth/authenticate.js";
 import { PermissionName } from "../db/entities/Permission.js";
 import { getRolebyName } from "../controllers/role&permissions.js";
@@ -71,11 +71,42 @@ router.put(
   authorize(PermissionName.adminAccess),
   async (req, res) => {
     try {
-      const user = await addRoleToUser(req.body.roleName, req.body.id);
-      res.send("Role added successfully");
+      let libraryId;
+      if (req.body.roleName == RoleType.librarian)
+        libraryId = req.body.libraryId;
+      const user = await addRoleToUser(
+        req.body.roleName,
+        req.body.id,
+        libraryId
+      );
+      res.send(`Role added successfully to user ` + user);
     } catch (err) {
       console.log(err);
       res.send("Error while assigning role to user");
+    }
+  }
+);
+
+router.delete(
+  "/user",
+  authenticate,
+  authorize(PermissionName.adminAccess),
+  async (req, res) => {
+    try {
+      let libraryId;
+      if (req.body.roleName == RoleType.librarian)
+        libraryId = req.body.libraryId;
+      const user = await removeRoleFromUser(
+        req.body.roleName,
+        req.body.id,
+        libraryId
+      );
+      res.send("Successfully deleted role from user" + user);
+    } catch (error) {
+      console.log(error);
+      res
+        .status(500)
+        .send("Something went wrong trying to delete a role from a user");
     }
   }
 );

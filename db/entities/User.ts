@@ -35,7 +35,7 @@ export class User extends BaseEntity {
   @Column({ nullable: false })
   password: string;
 
-  @Column({ nullable: false })
+  @Column({ nullable: false, unique: true })
   email: string;
 
   @Column({ nullable: false })
@@ -75,18 +75,19 @@ export class User extends BaseEntity {
   })
   giveawayBooks: Book[];
 
-  @ManyToMany(() => Role, { cascade: true })
+  @ManyToMany(() => Role, { cascade: true, eager: true })
   @JoinTable()
   roles: Role[];
 
-  @ManyToMany(() => Library, { cascade: true })
+  @ManyToMany(() => Library, { cascade: true, eager: true })
   @JoinTable()
   libraries: Library[];
 
   @OneToMany(() => Review, (review) => review.user)
   reviews: Review[];
 
-  @ManyToMany(() => User)
+  @ManyToMany(() => User, (user) => user.friends)
+  @JoinTable()
   friends: User[];
 }
 // check rels

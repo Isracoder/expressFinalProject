@@ -4,8 +4,8 @@ const router = express.Router();
 const routeName = "User";
 
 import { EntityTypes } from "../@types/entity.js";
-import { paginate } from "../controllers/paginate.js";
-import { createUser, login } from "../controllers/user.js";
+import { paginate, paginateList } from "../controllers/paginate.js";
+import { createUser, getRecsFromFriends, login } from "../controllers/user.js";
 import { authenticate } from "../middlewares/auth/authenticate.js";
 import { validateUser } from "../middlewares/validation/validUser.js";
 import { create } from "domain";
@@ -13,33 +13,72 @@ import { Library } from "../db/entities/Library.js";
 import { User } from "../db/entities/User.js";
 import { Book } from "../db/entities/Book.js";
 import { Copy, copyStatus } from "../db/entities/Copy.js";
-import { FileWatcherEventKind } from "typescript";
+import { EntityName, FileWatcherEventKind } from "typescript";
 import { FindRelationsNotFoundError } from "typeorm";
+import { PaginateEntityList } from "../@types/page.js";
+import { Librarian } from "../db/entities/Librarian.js";
+import { Review } from "../db/entities/Review.js";
+import dataSource from "../db/index.js";
+import { getBookIdsByAttributes } from "../controllers/book.js";
+import {
+  // getReviewsAndGenres,
+  getReviewsAndName,
+} from "../controllers/reviews.js";
+import { getBookGenres, getGenreCount } from "../controllers/genre.js";
 
-router.post("/", async (req, res) => {
-  // // const genre = new Genre();
-  // genre.name = req.body.name;
-  // await genre.save();
-  res.send(`${routeName} created successfully`);
+router.post("/", validateUser, async (req, res) => {
+  try {
+    // can be constructed more elegantly
+    const user = await createUser(
+      req.body.username,
+      req.body.password,
+      req.body.email,
+      req.body.DOB,
+      req.body.country,
+      req.body.city
+    );
+    res.send(`${routeName} created successfully with values ${user}`);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error while creating a user");
+  }
 });
 
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   // res.send(`In ${routeName} router`);
 
   const entityName: keyof EntityTypes = routeName;
-  const payload = {
+  // const payload = {
+  //   page: req.query.page?.toString() || "1",
+  //   pageSize: req.query.pageSize?.toString() || "10",
+  //   dbName: entityName,
+  // };
+
+  // paginate(payload)
+  //   .then((data) => {
+  //     res.send(data);
+  //   })
+  //   .catch((error) => {
+  //     console.error(error);
+  //     res.status(500).send("Something went wrong");
+  //   });
+
+  // Both paginate and paginateList can be used , the latter however is more general and useful
+
+  const users = await User.find();
+  const payload: PaginateEntityList<User> = {
     page: req.query.page?.toString() || "1",
     pageSize: req.query.pageSize?.toString() || "10",
-    dbName: entityName,
+    list: users,
   };
 
-  paginate(payload)
+  paginateList(payload)
     .then((data) => {
       res.send(data);
     })
-    .catch((error) => {
-      console.error(error);
-      res.status(500).send("Something went wrong");
+    .catch((err) => {
+      console.log(err);
+      res.send("Error  getting all user data");
     });
 });
 
@@ -50,6 +89,9 @@ router.post("/login", (req, res) => {
   login(email, password)
     .then((data) => {
       console.log("hi ho here's the data");
+      res.cookie("token", data.token, {
+        maxAge: 40 * 60 * 1000,
+      });
       res.send(data);
     })
     .catch((err) => {
@@ -58,51 +100,67 @@ router.post("/login", (req, res) => {
     });
 });
 
-router.get(
-  "/data",
-  /* authenticate , */ (req, res) => {
-    // Create a chart using a visualization library (e.g., Chart.js)
-    // const chartData = {
-    //   labels: ["Category A", "Category B", "Category C"],
-    //   datasets: [
-    //     {
-    //       data: [100, 200, 300], // Sample data, replace with actual data
-    //       backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
-    //     },
-    //   ],
-    // };
-    const chartData = {
-      fantasy: 5,
-      adventure: 3,
-      horror: 2,
-    };
+router.get("/logout", authenticate, (req, res) => {
+  // might need to add a blacklist of tokens for more security
+  res.cookie("loginTime", "", { maxAge: -1 });
+  res.cookie("token", "", { maxAge: -1 });
+  res.send("logged out");
+});
 
-    res.json(chartData);
-  }
-);
+router.get("/librarians", async (req, res) => {
+  const librarians = await Librarian.find();
+  const payload: PaginateEntityList<Librarian> = {
+    page: req.query.page?.toString() || "1",
+    pageSize: req.query.pageSize?.toString() || "10",
+    list: librarians,
+  };
 
-router.post(
-  "/register",
-  /*authorize("POST_users"),*/ validateUser,
-  (req, res, next) => {
-    createUser(
-      req.body.username,
-      req.body.password,
-      req.body.email,
-      req.body.DOB
-    )
-      .then(() => {
-        res.status(201).send("User created successfully");
-      })
-      .catch((err) => {
-        console.error(err);
-        res.status(500).send(err);
-      });
+  paginateList(payload)
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.send("Error  getting all Librarian data");
+    });
+});
+
+router.get("/data", authenticate, async (req, res) => {
+  try {
+    console.log("in user data");
+    let totalGenres: string[] = [];
+    const count: number[] = [];
+    const colors: string[] = [
+      "red",
+      "green",
+      "blue",
+      "orange",
+      "yellow",
+      "purple",
+      "cyan",
+      "lightgreen",
+      "brown",
+    ];
+    const user = res.locals.user;
+    if (!(user instanceof User))
+      return res.status(400).send("Make sure you are logged in");
+    const reviews = await getReviewsAndName(user.id);
+    // return res.send(reviews);
+    let genreCount: Map<string, number> = await getGenreCount(reviews);
+    for (let key of genreCount) {
+      totalGenres.push(key[0]);
+      count.push(key[1]);
+    }
+    console.log(genreCount);
+    res.render("chart", { totalGenres, count, colors });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error while rendering chart data");
   }
-);
+});
 
 // maybe not the best place for this route , users/available ? books/available ? copies/available
-router.get("/available", authenticate, async (req, res) => {
+router.get("/books/available", authenticate, async (req, res) => {
   try {
     // const libraries = res.locals.libraries ; // one idea for this approach
     const user = res.locals.user;
@@ -110,16 +168,37 @@ router.get("/available", authenticate, async (req, res) => {
       res.send("Make sure the user is correctly logged in");
       return;
     }
-    const libraries = await Library.find({ where: { city: user.city } });
-    const wantedBooks = user.wantedBooks;
-    let available: Copy[] = [];
+    const libraries = await Library.find({
+      where: { city: user.city },
+      relations: ["copies"],
+    });
+    const wantedBooks = (
+      await User.findOne({
+        where: { id: user.id },
+        relations: ["wantedBooks"],
+      })
+    )?.wantedBooks;
+    if (!wantedBooks) {
+      res.send("User doesn't have any books on the want-list currently");
+      return;
+    }
+    let available: Object[] = [];
     libraries.forEach((library) => {
       library.copies.forEach((copy) => {
-        if (
-          wantedBooks.includes(copy.book) &&
-          copy.status == copyStatus.available
-        )
-          available.push(copy);
+        if (copy.status == copyStatus.available) {
+          wantedBooks.forEach((book) => {
+            if (book.id == copy.book.id) {
+              available.push({
+                copyId: copy.id,
+                status: copy.status,
+                title: book.title,
+                author: book.author,
+                library: library.name,
+                city: library.city,
+              });
+            }
+          });
+        }
       });
     });
     if (!available.length)
@@ -132,7 +211,7 @@ router.get("/available", authenticate, async (req, res) => {
   }
 });
 
-router.post("/friend", authenticate, async (req, res) => {
+router.post("/friends", authenticate, async (req, res) => {
   try {
     const user = res.locals.user;
     if (!(user instanceof User)) {
@@ -140,17 +219,37 @@ router.post("/friend", authenticate, async (req, res) => {
       return;
     }
     const friendId = parseInt(req.body.id);
-    if (isNaN(friendId)) res.send("Make sure the user id is a number");
-    const friend = await User.findOneBy({ id: friendId });
-    if (!friend) {
-      res.send("No friend was found by that id");
+    if (!friendId) {
+      res.send("Make sure the user id is a number");
       return;
     }
-    if (user.friends.includes(friend)) res.send("You are already friends");
-    user.friends.push(friend);
-    // if this doesn't automatically add the friend from the other side
-    // then i need to add friend.friends.push(user)
-    await user.save();
+    if (friendId === user.id) {
+      res.send("You cannot be friends with yourself");
+      return;
+    }
+    const friend = await User.findOne({
+      where: { id: friendId },
+      relations: ["friends"],
+    });
+
+    const loadedUser = await User.findOne({
+      where: { id: user.id },
+      relations: ["friends"],
+    });
+    if (!friend || !loadedUser) {
+      res.send("No friend or user was found by that id");
+      return;
+    }
+    if (loadedUser.friends && loadedUser.friends.includes(friend))
+      res.send("You are already friends");
+    if (loadedUser.friends) loadedUser.friends.push(friend);
+    else loadedUser.friends = [friend];
+    // adding to both sides
+    if (friend.friends) friend.friends.push(loadedUser);
+    else friend.friends = [loadedUser];
+
+    await loadedUser.save();
+    await friend.save();
     res.send("Friend added successfully");
   } catch (err) {
     console.log(err);
@@ -158,7 +257,7 @@ router.post("/friend", authenticate, async (req, res) => {
   }
 });
 
-router.delete("/friend", authenticate, async (req, res) => {
+router.delete("/friends", authenticate, async (req, res) => {
   try {
     const user = res.locals.user;
     if (!(user instanceof User)) {
@@ -166,20 +265,73 @@ router.delete("/friend", authenticate, async (req, res) => {
       return;
     }
     const friendId = parseInt(req.body.id);
-    if (isNaN(friendId)) res.send("Make sure the user id is a number");
-    const friend = await User.findOneBy({ id: friendId });
-    if (!friend) {
-      res.send("No friend was found by that id");
+    if (!friendId) {
+      res.send("Make sure the user id is a number");
       return;
     }
-    if (!user.friends.includes(friend)) res.send("You are not friends");
-    user.friends = user.friends.filter((person) => person != friend);
-    await user.save();
-    // if this doesn't remove from other side then filter friends.friends
+    if (friendId === user.id) {
+      res.send("You aren't friends with yourself");
+      return;
+    }
+    const friend = await User.findOne({
+      where: { id: friendId },
+      relations: ["friends"],
+    });
+
+    const loadedUser = await User.findOne({
+      where: { id: user.id },
+      relations: ["friends"],
+    });
+    if (!friend || !loadedUser) {
+      res.send("No friend or user was found by that id");
+      return;
+    }
+
+    if (loadedUser.friends)
+      loadedUser.friends = loadedUser.friends.filter(
+        (frnd) => frnd.id !== friend.id
+      );
+
+    // removing from both sides
+    if (friend.friends)
+      friend.friends = friend.friends.filter(
+        (frnd) => frnd.id !== loadedUser.id
+      );
+
+    await loadedUser.save();
+    await friend.save();
     res.send("Friend removed successfully");
   } catch (err) {
     console.log(err);
     res.send("Error while deleting a friend");
+  }
+});
+
+// maybe add a transaction manager in friend routes
+// The current friend relationship is a mix of friends and followers for simplicity
+//I don't need their permission to add them as a friend and adding them to my friends adds me to their friends
+// removing someone from my friend list removes me from their friend list
+router.get("/friends", authenticate, async (req, res) => {
+  try {
+    const user = res.locals.user;
+    if (!(user instanceof User)) {
+      res.send("The user must be signed in");
+      return;
+    }
+    const loadedUser = await User.findOne({
+      where: { id: user.id },
+      relations: ["friends"],
+    });
+    if (!loadedUser) {
+      res.send("Are you logged in correctly?");
+    } else if (!loadedUser.friends)
+      res.send("This user hasn't added any friends");
+    else res.send(loadedUser.friends);
+
+    // res.send(user);
+  } catch (err) {
+    console.log(err);
+    res.send("Error while getting friends");
   }
 });
 
@@ -189,44 +341,69 @@ router.get("/giveaway", authenticate, async (req, res) => {
     if (!(user instanceof User)) {
       throw "Get valid user from login !";
     }
-    const wantedList = user.wantedBooks;
-    const usersInSameCity = await User.find({ where: { city: user.city } });
+    const wantedList = (
+      await User.findOne({ where: { id: user.id }, relations: ["wantedBooks"] })
+    )?.wantedBooks;
+    console.log(`user id : ${user.id}`);
+    if (!wantedList) {
+      res.send("You don't have a wanted list to cross-reference");
+      return;
+    }
+    const usersInSameCity = await User.find({
+      where: { city: user.city },
+      relations: ["giveawayBooks"],
+    });
     const giveaway: Object[] = [];
     wantedList.forEach((wantedBook) => {
+      console.log(`Wanted book ${wantedBook.id}`);
       usersInSameCity.forEach((person) => {
-        if (person != user && person.giveawayBooks.includes(wantedBook)) {
-          giveaway.push({ user: person, book: wantedBook });
+        if (person.id != user.id) {
+          person.giveawayBooks.forEach((book) => {
+            if (book.id == wantedBook.id) {
+              giveaway.push({
+                user: person.username,
+                city: person.city,
+                "giveaway-title": wantedBook.title,
+                author: wantedBook.author,
+              });
+            }
+          });
         }
       });
     });
     if (!giveaway.length)
       res.send("No users in your city are giving away books that you want");
-    res.send(giveaway);
+    else res.send(giveaway);
   } catch (err) {
     console.log(err);
     res.send("Error while searching for wanted books in giveaway lists");
   }
 });
 
+// seems to work
 router.get("/friend-recs", authenticate, async (req, res) => {
   try {
     const user = res.locals.user;
     if (!(user instanceof User)) throw "Get valid user from login";
-    const bookRecs: Object[] = [];
-    user.friends.forEach((friend) => {
-      friend.reviews.forEach((review) => {
-        if (review.stars >= 3.5) {
-          bookRecs.push({
-            book: review.book,
-            rating: review.stars,
-            friend: friend.username,
-          });
-        }
-      });
+    const loadedUser = await User.findOne({
+      where: { id: user.id },
+      relations: ["friends", "reviews"],
     });
-    if (!bookRecs.length)
-      res.send("No book recommendations from friend reviews");
-    res.send(bookRecs);
+    const userFriends = loadedUser?.friends;
+    let alreadyRead: number[] = [];
+    loadedUser?.reviews.forEach((rev) => alreadyRead.push(rev.book.id));
+    console.log(`Already read  : ${alreadyRead}`);
+    if (!userFriends) {
+      res.send(
+        "You currently haven't added any friends to get recommendations from"
+      );
+      return;
+    }
+
+    let bookRecs = await getRecsFromFriends(userFriends, alreadyRead);
+    if (!bookRecs) {
+      res.send("No book recommendations from friends");
+    } else res.send(bookRecs);
   } catch (error) {
     console.log(error);
     res.send("Error while getting recommendations");

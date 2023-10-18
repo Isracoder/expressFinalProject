@@ -25,11 +25,11 @@ export enum copyStatus {
 export class Copy extends BaseEntity {
   @PrimaryGeneratedColumn("increment")
   id: number;
-  @ManyToOne(() => Book, (book) => book.copies)
+  @ManyToOne(() => Book, (book) => book.copies, { eager: true })
   @JoinColumn()
   book: Book;
 
-  @ManyToOne(() => Library, (library) => library.copies)
+  @ManyToOne(() => Library, (library) => library.copies, { eager: true })
   @JoinColumn()
   library: Relation<Library>;
 

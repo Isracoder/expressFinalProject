@@ -25,14 +25,10 @@ router.post(
     // create a copy
     try {
       const library = await getLibraryById(req.body.libId);
-      checkLibrarian(library, res.locals.user); // check if this librarian can add to this library
-      const bookId = parseInt(req.body.bookId);
+      await checkLibrarian(library, res.locals.user); // check if this librarian can add to this library
+
       // if (!bookId) res.send("Please enter a valid book id");
-      const book = await Book.findOneBy({ id: bookId });
-      if (!book) {
-        res.send("No book found by that id");
-        return;
-      }
+      const book = await getBookbyId(req.body.bookId);
 
       const copy = new Copy();
       copy.book = book;
@@ -52,7 +48,10 @@ router.post(
 router.get("/book", async (req, res) => {
   try {
     const id = parseInt(req.body.bookId);
-    if (!id) res.send("Send a valid bookId number");
+    if (!id) {
+      res.send("Send a valid bookId number");
+      return;
+    }
     // const book = await getBookbyId(id);
     const copies = await Copy.find({
       where: [
@@ -63,8 +62,9 @@ router.get("/book", async (req, res) => {
         },
       ],
     });
-    if (!copies) res.send("No copies were found for that book id");
-    res.send(copies);
+    if (!copies) {
+      res.send("No copies were found for that book id");
+    } else res.send(copies);
   } catch (err) {
     console.log(err);
     res.send("Something went wrong trying to find copies of that book");
@@ -102,10 +102,15 @@ router.put(
         throw "Not a valid copy status";
       }
       // const book = await getBookbyId(req.body.bookId);
-      const copy = await Copy.findOneBy({ id: parseInt(req.body.copyId) });
+      let copyId = parseInt(req.body.copyId);
+      if (!copyId) {
+        res.status(400).send("Send a valid copyId field");
+        return;
+      }
+      const copy = await Copy.findOneBy({ id: copyId });
       if (!copy) throw "No copy found by that copy id";
       const library = await getLibraryById(req.body.libId);
-      checkLibrarian(library, res.locals.user);
+      await checkLibrarian(library, res.locals.user);
       copy.status = status;
       await copy.save();
       res.send(`Copy status changed successfully to ${status}`);

@@ -3,6 +3,8 @@ import { authorize } from "../middlewares/auth/authorize.js";
 import { paginate } from "../controllers/paginate.js";
 import { Genre } from "../db/entities/Genre.js";
 import { EntityTypes } from "../@types/entity.js";
+import { getBookbyId } from "../controllers/book.js";
+import { getGenreByName } from "../controllers/genre.js";
 const router = express.Router();
 const routeName = "Genre";
 
@@ -31,6 +33,21 @@ router.get("/", (req, res) => {
       console.error(error);
       res.status(500).send("Something went wrong");
     });
+});
+
+router.put("/book", async (req, res) => {
+  try {
+    if (!req.body.id || !req.body.genre)
+      return res.send("Please send book id and the name of a genre");
+    const book = await getBookbyId(req.body.id);
+    const genre = await getGenreByName(req.body.genre);
+    book.genres.push(genre);
+    await book.save();
+    res.send("Genre added to book successfully");
+  } catch (error) {
+    console.log(error);
+    res.send("Error while adding genre to book");
+  }
 });
 
 export default router;

@@ -34,7 +34,7 @@ const createLibrary = async (
 
 const checkLibrarian = async (lib: Library, user: User) => {
   const librarian = await Librarian.findOneBy({ userId: user.id });
-  if (librarian && librarian.library === lib) return true;
+  if (librarian && librarian.library.id === lib.id) return true;
   throw "That librarian isn't valid for this library";
 };
 
@@ -45,6 +45,7 @@ const getLibraryById = async (libId: number | string) => {
   if (!library) {
     throw "No library with that id in our database";
   }
+  console.log("library found");
   return library;
 };
 

@@ -24,7 +24,7 @@ export class Librarian extends BaseEntity {
   @PrimaryGeneratedColumn("increment")
   id: number;
 
-  @ManyToOne(() => Library, (library) => library.librarians)
+  @ManyToOne(() => Library, (library) => library.librarians, { eager: true })
   @JoinColumn()
   library: Relation<Library>;
 

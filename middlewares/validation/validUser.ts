@@ -6,7 +6,8 @@ const validateUser = (
   res: express.Response,
   next: express.NextFunction
 ) => {
-  const values = ["username", "email", "password", "DOB"];
+  // maybe use year , month , day instead of dob and check validity
+  const values = ["username", "email", "password", "DOB", "country", "city"];
   const user = req.body;
   const errorList = [];
   // const errorList = values.map(key => !user[key] && `${key} is Required!`).filter(Boolean);
@@ -24,9 +25,9 @@ const validateUser = (
     errorList.push("Password should contain at least 6 characters!");
   }
 
-  if (!["kid", "adult", "teen", "admin", "librarian"].includes(user.type)) {
-    errorList.push("User type unknown!");
-  }
+  // if (!["kid", "adult", "teen", "admin", "librarian"].includes(user.type)) {
+  //   errorList.push("User type unknown!");
+  // }
 
   if (errorList.length) {
     res.status(400).send(errorList);

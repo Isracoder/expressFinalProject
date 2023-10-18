@@ -15,6 +15,13 @@ import { Librarian } from "./Librarian.js";
 //   import { Permission } from "./Permission.js";
 // import { User } from "../../types/users.js";
 //   import bcrypt from "bcrypt";
+export enum LibraryType {
+  bookstore = "bookstore",
+  public = "public",
+  private = "private",
+  school = "school",
+  university = "university",
+}
 
 @Entity()
 export class Library extends BaseEntity {
@@ -28,9 +35,9 @@ export class Library extends BaseEntity {
 
   @Column({
     type: "enum",
-    enum: ["Bookstore", "Public", "Private", "School", "University"],
+    enum: LibraryType,
   })
-  type: "Bookstore" | "Public" | "Private" | "School" | "University";
+  type: LibraryType;
 
   @Column({
     // look into setting it as a valid country code , maybe with a constructor

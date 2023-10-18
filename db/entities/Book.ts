@@ -7,6 +7,7 @@ import {
   ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
+  Unique,
 } from "typeorm";
 import { Role } from "./Role.js";
 import { Genre } from "./Genre.js";
@@ -14,10 +15,12 @@ import { Library } from "./Library.js";
 import { User } from "./User.js";
 import { Review } from "./Review.js";
 import { Copy } from "./Copy.js";
+import { title } from "process";
 // import { User } from "../../types/users.js";
 //   import bcrypt from "bcrypt";
 
 @Entity()
+@Unique(["title", "author"])
 export class Book extends BaseEntity {
   @PrimaryGeneratedColumn("increment")
   id: number;
@@ -28,13 +31,13 @@ export class Book extends BaseEntity {
   @Column({ nullable: false })
   author: string;
 
-  @Column({})
+  @Column({ nullable: true })
   ISBN: string;
 
-  @Column({})
+  @Column({ nullable: true })
   ageRange: string;
 
-  @Column({})
+  @Column({ nullable: true })
   pages: number;
 
   @Column({ nullable: false })
@@ -43,7 +46,10 @@ export class Book extends BaseEntity {
   @Column({ nullable: false })
   language: string;
 
-  @ManyToMany(() => Genre, { cascade: true })
+  @ManyToMany(() => Genre, (genre) => genre.books, {
+    cascade: true,
+    eager: true,
+  })
   genres: Genre[];
 
   @ManyToMany(() => Library, {})

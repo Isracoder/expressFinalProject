@@ -5,7 +5,7 @@ import { Book } from "../db/entities/Book.js";
 import { allowedNodeEnvironmentFlags } from "process";
 dotenv.config();
 
-const getBookIdsByAttributes = async (
+const getBooksByAttributes = async (
   title?: string,
   author?: string,
   ISBN?: string,
@@ -16,9 +16,6 @@ const getBookIdsByAttributes = async (
 ) => {
   console.log("in find book");
   let arr = await Book.find({
-    select: {
-      id: true,
-    },
     where: [
       { title: title },
       { author: author },
@@ -32,6 +29,81 @@ const getBookIdsByAttributes = async (
   return arr;
 };
 
+const getBooksWith = async (
+  title?: string,
+  author?: string,
+  year?: string,
+  language?: string
+) => {
+  let pubYear = parseInt(year as string);
+  let books: Book[] = [];
+
+  let all = await Book.find();
+  all.forEach((book) => {
+    let addbook = true;
+    if (
+      author &&
+      book.author.toLowerCase() != author.toLowerCase() &&
+      !book.author
+        .toLowerCase()
+        .split(" ")
+        .includes((author as string).toLowerCase())
+    )
+      addbook = false;
+    if (
+      title &&
+      book.title.toLowerCase() != title.toLowerCase() &&
+      !book.title
+        .toLowerCase()
+        .split(" ")
+        .includes((title as string).toLowerCase())
+    )
+      addbook = false;
+    if (language && book.language.toLowerCase() != language.toLowerCase())
+      addbook = false;
+    if (pubYear && book.pubYear != pubYear) addbook = false;
+    if (addbook) books.push(book);
+  });
+  return books;
+};
+
+const getIdOfBooksWith = async (
+  title?: string,
+  author?: string,
+  year?: string,
+  language?: string
+) => {
+  let pubYear = parseInt(year as string);
+  let ids: number[] = [];
+
+  let all = await Book.find();
+  all.forEach((book) => {
+    let addbook = true;
+    if (
+      author &&
+      book.author.toLowerCase() != author.toLowerCase() &&
+      !book.author
+        .toLowerCase()
+        .split(" ")
+        .includes((author as string).toLowerCase())
+    )
+      addbook = false;
+    if (
+      title &&
+      book.title.toLowerCase() != title.toLowerCase() &&
+      !book.title
+        .toLowerCase()
+        .split(" ")
+        .includes((title as string).toLowerCase())
+    )
+      addbook = false;
+    if (language && book.language.toLowerCase() != language.toLowerCase())
+      addbook = false;
+    if (pubYear && book.pubYear != pubYear) addbook = false;
+    if (addbook) ids.push(book.id);
+  });
+  return ids;
+};
 const getBookbyId = async (bookId: number | string) => {
   if (typeof bookId === "string") bookId = parseInt(bookId);
   let book = await Book.findOneBy({ id: bookId });
@@ -91,8 +163,10 @@ const getBookbyISBN = async (ISBN: string) => {
 };
 
 export {
-  getBookIdsByAttributes,
+  getBooksByAttributes as getBookIdsByAttributes,
   getBookbyId,
   getBooksbyAuthor,
   getBooksbyTitle,
+  getBooksWith,
+  getIdOfBooksWith,
 };

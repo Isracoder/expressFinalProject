@@ -2,6 +2,8 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../../db/entities/User.js";
 import { Library } from "../../db/entities/Library.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const authenticate = async (
   req: express.Request,
@@ -9,20 +11,33 @@ const authenticate = async (
   next: express.NextFunction
 ) => {
   console.log("in authenticate");
-  const token = req.headers["authorization"] || "";
-  console.log(req.headers);
   let tokenIsValid;
+  let token;
   try {
+    token = req.headers["authorization"] || req.cookies["token"];
+    // console.log(req.cookies.token);
+    // if (!token) token = req.cookies["token"];
+    // console.log(token);
+    // console.log(req.headers);
+    if (!token) throw "Token not sent";
     // tokenIsValid = jwt.verify(token, process.env.SECRET_KEY || '');
     tokenIsValid = jwt.verify(token, process.env.SECRET_KEY || "");
   } catch (error) {
-    res.send("an error occurred while authenticating");
+    console.error(error);
+    console.log(error);
+    res
+      .status(500)
+      .send(
+        "an error occurred while authenticating , please send a correct token"
+      );
+    return;
   }
 
   if (tokenIsValid) {
+    console.log("token is valid");
     const decoded = jwt.decode(token, { json: true });
     const user = await User.findOneBy({ email: decoded?.email || "" });
-
+    if (!user) res.send("No user found , authentication failed");
     res.locals.user = user;
     res.locals.libraries = user?.libraries;
     next();

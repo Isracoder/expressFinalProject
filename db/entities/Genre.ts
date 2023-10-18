@@ -23,9 +23,11 @@ export class Genre extends BaseEntity {
   })
   name: string;
 
-  @ManyToMany(() => Book, { cascade: true, eager: true })
-  @JoinTable()
-  Book: Book[];
+  @ManyToMany(() => Book, (book) => book.genres)
+  @JoinTable({
+    // name: "BookGenres",
+  })
+  books: Book[];
 }
 // add many to many  with user      --complete
 // , many to many with permission   -- complete

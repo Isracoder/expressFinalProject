@@ -10,20 +10,27 @@ import genresRouter from "./routes/genres.js";
 import librariesRouter from "./routes/libraries.js";
 import permissionsRouter from "./routes/permissions.js";
 import rolesRouter from "./routes/roles.js";
+import copiesRouter from "./routes/copies.js";
+import cookieParser from "cookie-parser";
+import reviewsRouter from "./routes/reviews.js";
+import pug from "pug";
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(express.json());
+app.set("view engine", "pug");
 
 app.get("/", (req, res) => {
   res.send("Server UP!");
 });
-
+app.use(cookieParser());
 app.use("/users", userRouter);
 app.use("/books", bookRouter);
 app.use("/genres", genresRouter);
 app.use("/libraries", librariesRouter);
 app.use("/permissions", permissionsRouter);
 app.use("/roles", rolesRouter);
+app.use("/reviews", reviewsRouter);
+app.use("/copies", copiesRouter);
 app.use(error404Handler);
 
 app.use((req, res) => {
@@ -35,3 +42,5 @@ app.listen(PORT, () => {
   baseLogger.info(`App is listening on port ${PORT}`);
   initialize();
 });
+
+export { app };

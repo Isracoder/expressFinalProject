@@ -10,11 +10,14 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   Relation,
+  Unique,
 } from "typeorm";
 import { User } from "./User.js";
 import { Book } from "./Book.js";
-
+// import Decimal from "decimal.js";
+// import { DecimalToString, DecimalTransformer } from './decimal.transformer';
 @Entity()
+@Unique(["book", "user"])
 export class Review extends BaseEntity {
   @PrimaryGeneratedColumn({})
   id: number;
@@ -22,18 +25,23 @@ export class Review extends BaseEntity {
   @Column({})
   text: string;
 
-  @ManyToOne(() => Book, (book) => book.reviews)
+  @ManyToOne(() => Book, (book) => book.reviews, { eager: true })
   @JoinColumn()
   book: Relation<Book>;
 
-  @ManyToOne(() => User, (user) => user.reviews, { cascade: true })
+  @ManyToOne(() => User, (user) => user.reviews)
   @JoinColumn()
   user: Relation<User>;
 
   @Column({})
   createdAt: Date;
 
-  @Column()
+  @Column({
+    name: "stars",
+    type: "decimal",
+    precision: 3,
+    scale: 2,
+  })
   stars: number;
 
   @Column({})
