@@ -33,7 +33,7 @@ jobs:
         uses: khaledez/configure-docker-host@v1
         with:
           # ip of ec2 instance
-          host: 3.124.193.122
+          host: 3.68.94.101
           user: github
           ssh-private-key: ${{ secrets.DEP3_KEY }}
       - name: deploy
