@@ -37,7 +37,7 @@ jobs:
           user: github
           ssh-private-key: ${{ secrets.DEP3_KEY }}
       - name: deploy
-        run: docker compose -f docker-compose-prod.yml up -d
+        run: docker compose -f docker-compose-prod.yml up --build -d
         env:
           # DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_PASSWORD: ""
