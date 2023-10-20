@@ -33,13 +33,14 @@ jobs:
         uses: khaledez/configure-docker-host@v1
         with:
           # ip of ec2 instance
-          host: 18.193.118.190
+          host: 3.124.193.122
           user: github
           ssh-private-key: ${{ secrets.DEP3_KEY }}
       - name: deploy
         run: docker compose -f docker-compose-prod.yml up -d
         env:
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          # DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_PASSWORD: ""
           GIT_VERSION: ${{ steps.image-version.outputs.gitsha }}
       - name: print logs
         if: always()

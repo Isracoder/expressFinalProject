@@ -17,7 +17,13 @@ import { RoleType } from "../db/entities/Role.js";
 import { PermissionName } from "../db/entities/Permission.js";
 import { timeLog } from "console";
 import fs from "fs";
-import { getTitle, putImage, sendEmail } from "../controllers/aws.js";
+import {
+  getTitleFromPublicUrl,
+  getUrlParams,
+  putImage,
+  recognition,
+  sendEmail,
+} from "../controllers/aws.js";
 import { PaginateEntityList } from "../@types/page.js";
 
 const validYear = (year: number) => {
@@ -261,8 +267,24 @@ router.get("/find/title", async (req, res) => {
     if (!req.body.img) {
       return res.status(400).json({ message: "No image uploaded" });
     }
-    const result = await getTitle(req.body.img);
-    res.send(result);
+    const params = await getUrlParams(req.body.img);
+    let response: string[] = [];
+    recognition.detectText(params, async (err, data) => {
+      if (err) {
+        console.error("Error analyzing image:", err);
+        throw "error analyzing image";
+      }
+      data.TextDetections?.forEach((result) => {
+        if (
+          result.Type == "LINE" &&
+          result.Confidence &&
+          result.Confidence >= 70 &&
+          result.DetectedText
+        )
+          response.push(result.DetectedText);
+      });
+      res.send(response);
+    });
   } catch (err) {
     console.log(err);
     res.send("Error while getting title text from image");

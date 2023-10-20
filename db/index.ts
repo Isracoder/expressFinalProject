@@ -13,12 +13,13 @@ import { Librarian } from "./entities/Librarian.js";
 dotenv.config();
 
 const dataSource = new DataSource({
-  name: "default",
+  // name: "default",
   type: "mysql",
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
   username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
+  // password: process.env.DB_PASSWORD,
+  password: "",
   database: process.env.DB_NAME,
   entities: [
     User,
@@ -35,8 +36,9 @@ const dataSource = new DataSource({
   // logging: true,
 });
 
-export const initialize = async () =>
-  await dataSource
+export const initialize = async () => {
+  // console.log(pro)
+  return await dataSource
     .initialize()
     .then(() => {
       console.log("Connected to DB!");
@@ -46,5 +48,6 @@ export const initialize = async () =>
       console.error("Failed to connect to DB: " + err);
       baseLogger.error("Failed to connect to DB : " + err);
     });
+};
 
 export default dataSource;

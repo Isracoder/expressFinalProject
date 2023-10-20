@@ -6,6 +6,7 @@ services:
     image: mysql
     environment:
       - MYSQL_ROOT_PASSWORD=$DB_PASSWORD
+      - MYSQL_ALLOW_EMPTY_PASSWORD=""
       - MYSQL_DATABASE=FinalProject
     volumes:
       - db-data:/var/lib/mysql
