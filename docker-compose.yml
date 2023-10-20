@@ -6,7 +6,6 @@ services:
     image: mysql
     environment:
       - MYSQL_ROOT_PASSWORD=$DB_PASSWORD
-      - MYSQL_ALLOW_EMPTY_PASSWORD=""
       - MYSQL_DATABASE=FinalProject
     volumes:
       - db-data:/var/lib/mysql
@@ -29,7 +28,7 @@ services:
       - DB_PASSWORD=$DB_PASSWORD
       - DB_NAME=FinalProject
     ports:
-      - "3000:80"
+      - "5000:80"
     # healthcheck:
     #   test: ["CMD", "curl", "http://localhost"]
     #   timeout: 20s
