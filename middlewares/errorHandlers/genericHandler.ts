@@ -18,13 +18,9 @@ const errorSender = (
   res: express.Response,
   next: express.NextFunction
 ) => {
-  if (error.code === "INVALID_CREDENTIALS") {
-    res.status(401).send("Invalid Credentials!");
-  } else if (error.code === "INVALID_INPUT") {
-    res.status(400).send(error.message || error);
-  } else {
-    res.status(500).send("Something went wrong!");
-  }
+  res
+    .status(error.code || 500)
+    .send(error.reason || "Something went wrong :( ");
 };
 
 const error404Handler = (req: express.Request, res: express.Response) => {

@@ -13,9 +13,10 @@ import { FileWatcherEventKind } from "typescript";
 import { Book } from "../db/entities/Book.js";
 import { authenticate } from "../middlewares/auth/authenticate.js";
 import { text } from "stream/consumers";
+import baseLogger from "../logger.js";
 
 // creating a new review for a certain user and book
-router.post("/", authenticate, async (req, res) => {
+router.post("/", authenticate, async (req, res, next) => {
   try {
     const { text, imageUrl } = req.body;
     const bookId = parseInt(req.body.bookId);
@@ -60,11 +61,12 @@ router.post("/", authenticate, async (req, res) => {
     res.send("Review created successfully");
   } catch (err) {
     console.log(err);
-    res.send("An error occurred while creating a new review");
+    baseLogger.error("An error occurred while creating a new review");
+    next(err);
   }
 });
 //all reviews
-router.get("/", (req, res) => {
+router.get("/", (req, res, next) => {
   // res.send(`In ${routeName} router`);
 
   const entityName: keyof EntityTypes = routeName;
@@ -80,12 +82,13 @@ router.get("/", (req, res) => {
     })
     .catch((error) => {
       console.error(error);
-      res.status(500).send("Something went wrong");
+      next(error);
+      // res("Something went wrong");
     });
 });
 
 // get all reviews for a certain user
-router.get("/user", async (req, res) => {
+router.get("/user", async (req, res, next) => {
   const userId = parseInt(req.body.id);
   if (!userId) {
     res.send("Please enter a valid user id");
@@ -116,7 +119,8 @@ router.get("/user", async (req, res) => {
     })
     .catch((err) => {
       console.log(err);
-      res.send("Error while finding reviews for this user");
+      next(err);
+      // res.send("Error while finding reviews for this user");
     });
 });
 
@@ -124,20 +128,22 @@ router.get("/user", async (req, res) => {
 router.post("/book");
 
 // get all reviews for a certain book
-router.get("/book", async (req, res) => {
-  const bookid = req.body.id;
-  if (!bookid) res.send("Please enter a book id");
+router.get("/book", async (req, res, next) => {
+  try {
+    const bookid = req.body.id;
+    if (!bookid) res.send("Please enter a book id");
 
-  const reviews = await Review.find({ relations: ["book"] });
-  const allReviews = reviews.filter((review) => review.book.id == bookid);
-  if (!allReviews.length) res.send("No reviews where found for that book id");
-  else {
-    console.log("The reviews were found");
+    const reviews = await Review.find({ relations: ["book"] });
+    const allReviews = reviews.filter((review) => review.book.id == bookid);
+    if (!allReviews.length)
+      console.log("No reviews where found for that book id");
     res.send(allReviews);
+  } catch (err) {
+    next(err);
   }
 });
 
-router.put("/book/stars", authenticate, async (req, res) => {
+router.put("/book/stars", authenticate, async (req, res, next) => {
   try {
     const stars = parseFloat(req.body.stars);
 
@@ -162,31 +168,32 @@ router.put("/book/stars", authenticate, async (req, res) => {
       return;
     }
 
-    reviews.forEach(async (review) => {
+    for (let review of reviews) {
       if (review.book.id == book.id && review.user.id == authUser.id) {
         review.stars = stars;
         await review.save();
       }
-    });
+    }
+    // reviews.forEach(async (review) => {
+
+    // });
     res.send("User review updated successfully");
   } catch (err) {
     console.log(err);
-    res.send("Problem updating review");
+    baseLogger.error("Problem updating review");
+    next(err);
   }
 });
 
-router.put("/book/text", authenticate, async (req, res) => {
+router.put("/book/text", authenticate, async (req, res, next) => {
   try {
     const text = req.body.text;
     // const userId = parseInt(req.body.userId);
     const authUser = res.locals.user;
-    if (!(authUser instanceof User)) {
-      res.send("Please make sure a valid user is logged in");
-      return;
+    if (!(authUser instanceof User) || !req.body.bookId || !text) {
+      throw { code: 400, reason: "Invalid credentials or requirements" };
     }
 
-    if (!req.body.bookId || !text)
-      res.send("Please make sure you've sent the text and book ids");
     const book = await getBookbyId(req.body.bookId);
 
     const reviews = await Review.find({
@@ -197,18 +204,20 @@ router.put("/book/text", authenticate, async (req, res) => {
       res.send("No reviews found");
       return;
     }
-
-    reviews.forEach(async (review) => {
+    for (let review of reviews) {
       if (review.book.id == book.id && review.user.id == authUser.id) {
         review.text = text;
         await review.save();
       }
-    });
+    }
+    // reviews.forEach(async (review) => {
+    // });
 
     res.send("Review updated successfully");
   } catch (err) {
     console.log(err);
-    res.send("Error while updating review");
+    baseLogger.error("Error while updating review");
+    next(err);
   }
 });
 

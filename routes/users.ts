@@ -1,32 +1,23 @@
 import express from "express";
 import { authorize } from "../middlewares/auth/authorize.js";
-const router = express.Router();
-const routeName = "User";
-
 import { EntityTypes } from "../@types/entity.js";
-import { paginate, paginateList } from "../controllers/paginate.js";
+import { paginateList } from "../controllers/paginate.js";
 import { createUser, getRecsFromFriends, login } from "../controllers/user.js";
 import { authenticate } from "../middlewares/auth/authenticate.js";
 import { validateUser } from "../middlewares/validation/validUser.js";
-import { create } from "domain";
 import { Library } from "../db/entities/Library.js";
 import { User } from "../db/entities/User.js";
-import { Book } from "../db/entities/Book.js";
-import { Copy, copyStatus } from "../db/entities/Copy.js";
-import { EntityName, FileWatcherEventKind } from "typescript";
-import { FindRelationsNotFoundError } from "typeorm";
+import { copyStatus } from "../db/entities/Copy.js";
 import { PaginateEntityList } from "../@types/page.js";
 import { Librarian } from "../db/entities/Librarian.js";
-import { Review } from "../db/entities/Review.js";
-import dataSource from "../db/index.js";
-import { getBookIdsByAttributes } from "../controllers/book.js";
-import {
-  // getReviewsAndGenres,
-  getReviewsAndName,
-} from "../controllers/reviews.js";
-import { getBookGenres, getGenreCount } from "../controllers/genre.js";
-
-router.post("/", validateUser, async (req, res) => {
+import { getReviewsAndName } from "../controllers/reviews.js";
+import { getGenreCount } from "../controllers/genre.js";
+import { PermissionName } from "../db/entities/Permission.js";
+import { putImage, sendEmail } from "../controllers/aws.js";
+import baseLogger from "../logger.js";
+const router = express.Router();
+const routeName = "User";
+router.post("/", validateUser, async (req, res, next) => {
   try {
     // can be constructed more elegantly
     const user = await createUser(
@@ -37,14 +28,16 @@ router.post("/", validateUser, async (req, res) => {
       req.body.country,
       req.body.city
     );
-    res.send(`${routeName} created successfully with values ${user}`);
+    console.log(`${routeName} created successfully with values ${user}`);
+    res.status(201).send(user);
   } catch (err) {
     console.log(err);
-    res.status(500).send("Error while creating a user");
+    next(err);
+    // res.status(500).send("Error while creating a user");
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", async (req, res, next) => {
   // res.send(`In ${routeName} router`);
 
   const entityName: keyof EntityTypes = routeName;
@@ -78,11 +71,11 @@ router.get("/", async (req, res) => {
     })
     .catch((err) => {
       console.log(err);
-      res.send("Error  getting all user data");
+      next(err);
     });
 });
 
-router.post("/login", (req, res) => {
+router.post("/login", (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
   console.log("in post methodj");
@@ -96,7 +89,8 @@ router.post("/login", (req, res) => {
     })
     .catch((err) => {
       console.log("error bad request");
-      res.status(401).send(err);
+      // res.status(401).send(err);
+      next(err);
     });
 });
 
@@ -107,25 +101,26 @@ router.get("/logout", authenticate, (req, res) => {
   res.send("logged out");
 });
 
-router.get("/librarians", async (req, res) => {
-  const librarians = await Librarian.find();
-  const payload: PaginateEntityList<Librarian> = {
-    page: req.query.page?.toString() || "1",
-    pageSize: req.query.pageSize?.toString() || "10",
-    list: librarians,
-  };
+router.post(
+  "/send-email",
+  authenticate,
+  authorize(PermissionName.adminAccess),
+  async (req, res, next) => {
+    try {
+      const { recipient, subject, message } = req.body;
+      if (!recipient || !subject || !message)
+        return res.status(400).send("Please send requirements");
+      await sendEmail(recipient, subject, message);
 
-  paginateList(payload)
-    .then((data) => {
-      res.send(data);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.send("Error  getting all Librarian data");
-    });
-});
-
-router.get("/data", authenticate, async (req, res) => {
+      res.status(200).send("Email sent successfully.");
+    } catch (error) {
+      console.log(error);
+      // res.status(500).send("Error while sending email");
+      next(error);
+    }
+  }
+);
+router.get("/data/genres", authenticate, async (req, res, next) => {
   try {
     console.log("in user data");
     let totalGenres: string[] = [];
@@ -152,21 +147,74 @@ router.get("/data", authenticate, async (req, res) => {
       count.push(key[1]);
     }
     console.log(genreCount);
-    res.render("chart", { totalGenres, count, colors });
+    res.render("genres", { totalGenres, count, colors });
   } catch (err) {
     console.log(err);
-    res.status(500).send("Error while rendering chart data");
+    // res.status(500).send("Error while rendering chart data");
+    next(err);
   }
 });
 
+router.get("/data/books", authenticate, async (req, res, next) => {
+  try {
+    console.log("in user data");
+    const months: string[] = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+    const count: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    const colors: string[] = [
+      "red",
+      "green",
+
+      "orange",
+      "yellow",
+      "purple",
+      "cyan",
+      "lightgreen",
+      "brown",
+      "blue",
+      "maroon",
+      "lavender",
+      "beige",
+    ];
+    const user = res.locals.user;
+    if (!(user instanceof User))
+      return res.status(400).send("Make sure you are logged in");
+    const reviews = await getReviewsAndName(user.id);
+    const date = new Date();
+    reviews.forEach((review) => {
+      if (review.createdAt.getFullYear() == date.getFullYear())
+        count[review.createdAt.getMonth()] += 1;
+    });
+
+    res.render("books", { months, count, colors });
+  } catch (err) {
+    console.log(err);
+    next(err);
+    // res.status(500).send("Error while rendering chart data");
+  }
+});
+
+// maybe should be in users ?
+
 // maybe not the best place for this route , users/available ? books/available ? copies/available
-router.get("/books/available", authenticate, async (req, res) => {
+router.get("/books/available", authenticate, async (req, res, next) => {
   try {
     // const libraries = res.locals.libraries ; // one idea for this approach
     const user = res.locals.user;
     if (!(user instanceof User)) {
-      res.send("Make sure the user is correctly logged in");
-      return;
+      throw { code: 400, reason: "Make sure the user is correctly logged in" };
     }
     const libraries = await Library.find({
       where: { city: user.city },
@@ -207,11 +255,14 @@ router.get("/books/available", authenticate, async (req, res) => {
     res.send(available); // consider paginating the result
   } catch (err) {
     console.log(err);
-    res.send("An error occurred while searching for available wanted books");
+    next(err);
+    baseLogger.error(
+      "An error occurred while searching for available wanted books"
+    );
   }
 });
 
-router.post("/friends", authenticate, async (req, res) => {
+router.post("/friends", authenticate, async (req, res, next) => {
   try {
     const user = res.locals.user;
     if (!(user instanceof User)) {
@@ -253,11 +304,12 @@ router.post("/friends", authenticate, async (req, res) => {
     res.send("Friend added successfully");
   } catch (err) {
     console.log(err);
-    res.send("Error while adding a friend");
+    baseLogger.error("Error while adding a friend");
+    next(err);
   }
 });
 
-router.delete("/friends", authenticate, async (req, res) => {
+router.delete("/friends", authenticate, async (req, res, next) => {
   try {
     const user = res.locals.user;
     if (!(user instanceof User)) {
@@ -303,7 +355,38 @@ router.delete("/friends", authenticate, async (req, res) => {
     res.send("Friend removed successfully");
   } catch (err) {
     console.log(err);
-    res.send("Error while deleting a friend");
+    baseLogger.error("Error while deleting a friend");
+    next(err);
+  }
+});
+// seems to work
+router.get("/friend-recs", authenticate, async (req, res, next) => {
+  try {
+    const user = res.locals.user;
+    if (!(user instanceof User)) throw "Get valid user from login";
+    const loadedUser = await User.findOne({
+      where: { id: user.id },
+      relations: ["friends", "reviews"],
+    });
+    const userFriends = loadedUser?.friends;
+    let alreadyRead: number[] = [];
+    loadedUser?.reviews.forEach((rev) => alreadyRead.push(rev.book.id));
+    console.log(`Already read  : ${alreadyRead}`);
+    if (!userFriends) {
+      res.send(
+        "You currently haven't added any friends to get recommendations from"
+      );
+      return;
+    }
+
+    let bookRecs = await getRecsFromFriends(userFriends, alreadyRead);
+    if (!bookRecs) {
+      res.send("No book recommendations from friends");
+    } else res.send(bookRecs);
+  } catch (error) {
+    console.log(error);
+    baseLogger.error("Error while getting recommendations");
+    next(error);
   }
 });
 
@@ -311,7 +394,7 @@ router.delete("/friends", authenticate, async (req, res) => {
 // The current friend relationship is a mix of friends and followers for simplicity
 //I don't need their permission to add them as a friend and adding them to my friends adds me to their friends
 // removing someone from my friend list removes me from their friend list
-router.get("/friends", authenticate, async (req, res) => {
+router.get("/friends", authenticate, async (req, res, next) => {
   try {
     const user = res.locals.user;
     if (!(user instanceof User)) {
@@ -331,11 +414,12 @@ router.get("/friends", authenticate, async (req, res) => {
     // res.send(user);
   } catch (err) {
     console.log(err);
-    res.send("Error while getting friends");
+    baseLogger.error("Error while getting friends");
+    next(err);
   }
 });
 
-router.get("/giveaway", authenticate, async (req, res) => {
+router.get("/giveaway", authenticate, async (req, res, next) => {
   try {
     const user = res.locals.user;
     if (!(user instanceof User)) {
@@ -376,37 +460,30 @@ router.get("/giveaway", authenticate, async (req, res) => {
     else res.send(giveaway);
   } catch (err) {
     console.log(err);
-    res.send("Error while searching for wanted books in giveaway lists");
+    baseLogger.error(
+      "Error while searching for wanted books in giveaway lists"
+    );
+    next(err);
   }
 });
 
-// seems to work
-router.get("/friend-recs", authenticate, async (req, res) => {
+router.put("/image", authenticate, async (req, res, next) => {
   try {
-    const user = res.locals.user;
-    if (!(user instanceof User)) throw "Get valid user from login";
-    const loadedUser = await User.findOne({
-      where: { id: user.id },
-      relations: ["friends", "reviews"],
-    });
-    const userFriends = loadedUser?.friends;
-    let alreadyRead: number[] = [];
-    loadedUser?.reviews.forEach((rev) => alreadyRead.push(rev.book.id));
-    console.log(`Already read  : ${alreadyRead}`);
-    if (!userFriends) {
-      res.send(
-        "You currently haven't added any friends to get recommendations from"
-      );
-      return;
+    if (!req.body.img) {
+      throw { code: 400, reason: "Invalid requirements" };
     }
-
-    let bookRecs = await getRecsFromFriends(userFriends, alreadyRead);
-    if (!bookRecs) {
-      res.send("No book recommendations from friends");
-    } else res.send(bookRecs);
+    const data = await putImage(
+      req.body.img,
+      res.locals.user.id,
+      "user-images-gsg"
+    );
+    console.log(data);
+    console.log("Successfull");
+    res.send(data);
   } catch (error) {
     console.log(error);
-    res.send("Error while getting recommendations");
+    next(error);
+    // res.send("Error while trying to add book image to s3 bucket");
   }
 });
 

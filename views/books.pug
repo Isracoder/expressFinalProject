@@ -1,0 +1,48 @@
+doctype html
+html
+    head
+        title My Chart Example
+        script(src="https://cdn.jsdelivr.net/npm/chart.js")
+        link(rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css")
+    body
+        .container
+            .row
+                .col-md-6.mx-auto
+                    h1.text-center.m-2.p-1 Your books this year 
+                    #chart-container
+                        canvas#myChart(width="400" height="200")
+                        script.
+                            const ctx = document.getElementById('myChart').getContext('2d');
+                            const data = {
+                                labels: !{JSON.stringify(months)},
+                                datasets: [{
+                                    data: !{JSON.stringify(count)},
+                                    backgroundColor: !{JSON.stringify(colors)}
+                                }]
+                            };
+                            const config = {
+                                type: 'bar',
+                                data: data,
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: true  ,
+                                    plugins: {
+                                        legend: {
+                                            position: 'bottom',
+                                        }
+                                    },
+                                    layout: {
+                                        padding: {
+                                            top: 20  // Adjust the top padding to create space
+                                        }
+                                    },
+                                    scales: {
+                                        y: {
+                                            beginAtZero:true ,
+                                            stepSize:1 , 
+                                            //- max: 5 ,
+                                        }
+                                    }
+                                }
+                            };
+                            const myChart = new Chart(ctx, config);

@@ -12,13 +12,14 @@ import {
   getPermissionbyName,
   getRolebyName,
 } from "../controllers/role&permissions.js";
+import baseLogger from "../logger.js";
 
 // posts a new permission
 router.post(
   "/",
   authenticate,
   authorize(PermissionName.adminAccess),
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       const name = req.body.name;
       if (!Object.values(PermissionName).includes(name))
@@ -29,12 +30,13 @@ router.post(
       res.send(`${routeName} created successfully`);
     } catch (err) {
       console.log(err);
-      res.send("Error creating new permission in db");
+      baseLogger.error("Error creating new permission in db");
+      next(err);
     }
   }
 );
 // gets all permissions
-router.get("/", (req, res) => {
+router.get("/", (req, res, next) => {
   // res.send(`In ${routeName} router`);
 
   const entityName: keyof EntityTypes = routeName;
@@ -50,7 +52,8 @@ router.get("/", (req, res) => {
     })
     .catch((error) => {
       console.error(error);
-      res.status(500).send("Something went wrong");
+      // res.status(500).send("Something went wrong");
+      next(error);
     });
 });
 
@@ -59,7 +62,7 @@ router.put(
   "/role",
   authenticate,
   authorize(PermissionName.adminAccess),
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       const roleName = req.body.roleName;
       const permName = req.body.permission;
@@ -70,7 +73,8 @@ router.put(
       res.send("Permission added to role successfully");
     } catch (err) {
       console.log(err);
-      res.send("Error while adding a permission to a role");
+      // res.send("Error while adding a permission to a role");
+      next(err);
     }
   }
 );

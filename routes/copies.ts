@@ -21,7 +21,7 @@ router.post(
   "/",
   authenticate,
   authorize(PermissionName.librarianAccess),
-  async (req, res) => {
+  async (req, res, next) => {
     // create a copy
     try {
       const library = await getLibraryById(req.body.libId);
@@ -39,13 +39,14 @@ router.post(
       res.send(`${routeName} created successfully`);
     } catch (err) {
       console.log(err);
-      res.send("Error while adding new copy to library");
+      next(err);
+      // res.send("Error while adding new copy to library");
     }
   }
 );
 
 // maybe get only copies in the same city as me ? default it to my city , or to the city sent
-router.get("/book", async (req, res) => {
+router.get("/book", async (req, res, next) => {
   try {
     const id = parseInt(req.body.bookId);
     if (!id) {
@@ -67,11 +68,12 @@ router.get("/book", async (req, res) => {
     } else res.send(copies);
   } catch (err) {
     console.log(err);
-    res.send("Something went wrong trying to find copies of that book");
+    next(err);
+    // res.send("Something went wrong trying to find copies of that book");
   }
 });
 
-router.get("/", (req, res) => {
+router.get("/", (req, res, next) => {
   // res.send(`In ${routeName} router`);
 
   const entityName: keyof EntityTypes = routeName;
@@ -87,7 +89,8 @@ router.get("/", (req, res) => {
     })
     .catch((error) => {
       console.error(error);
-      res.status(500).send("Something went wrong");
+      // res.status(500).send("Something went wrong");
+      next(error);
     });
 });
 
@@ -95,7 +98,7 @@ router.put(
   "/status",
   authenticate,
   authorize(PermissionName.librarianAccess),
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       const status = req.body.status;
       if (!Object.values(copyStatus).includes(status)) {
@@ -116,7 +119,8 @@ router.put(
       res.send(`Copy status changed successfully to ${status}`);
     } catch (error) {
       console.log(error);
-      res.send("Error changing copy status");
+      // res.send("Error changing copy status");
+      next(error);
     }
   }
 );

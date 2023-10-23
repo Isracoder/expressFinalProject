@@ -12,7 +12,14 @@ const authorize = (api: string) => {
     next: express.NextFunction
   ) => {
     const user = res.locals.user;
-    if (!(user instanceof User)) throw "Not logged in";
+    if (!(user instanceof User)) {
+      next({
+        code: 401,
+        codeMeaning: "Invalid login",
+        reason: "Not logged in as a valid user",
+      });
+      return;
+    }
     const roles = user.roles;
     const adminRole = await Role.find({ where: { name: RoleType.admin } });
     // currently allow admins to do everything
@@ -20,12 +27,6 @@ const authorize = (api: string) => {
       next();
       return;
     }
-    // const librarianRole = await Role.find({
-    //   where: { name: RoleType.librarian },
-    // });
-
-    // if (librarianRole instanceof Role && roles.includes(librarianRole)) {
-    // }
     let found = false;
     user.roles.forEach((role) => {
       const permissions = role.permisssions;
@@ -37,9 +38,14 @@ const authorize = (api: string) => {
       }
     });
     if (!found) {
-      res
-        .status(403)
-        .send("You don't have the permission to access this resource!");
+      next({
+        code: 403,
+        codeMeaning: "INVALID_CREDENTIALS",
+        reason: "You don't have the permission to access this resource",
+      });
+      // res
+      //   .status(403)
+      //   .send("You don't have the permission to access this resource!");
     }
   };
 };

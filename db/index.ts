@@ -16,10 +16,10 @@ const dataSource = new DataSource({
   // name: "default",
   type: "mysql",
   host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
+  port: parseInt(process.env.DB_PORT as string),
   username: process.env.DB_USERNAME,
-  // password: process.env.DB_PASSWORD,
-  password: "",
+  password: process.env.DB_PASSWORD,
+  // password: "",
   database: process.env.DB_NAME,
   entities: [
     User,
@@ -41,10 +41,12 @@ export const initialize = async () => {
   return await dataSource
     .initialize()
     .then(() => {
+      console.log(process.env.DB_NAME);
       console.log("Connected to DB!");
       baseLogger.info("Connected to DB!");
     })
     .catch((err) => {
+      console.log(process.env.DB_NAME);
       console.error("Failed to connect to DB: " + err);
       baseLogger.error("Failed to connect to DB : " + err);
     });

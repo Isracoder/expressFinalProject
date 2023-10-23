@@ -7,26 +7,6 @@ import { Review } from "../db/entities/Review.js";
 import { Role } from "../db/entities/Role.js";
 import { User } from "../db/entities/User.js";
 
-// namespace NSEntity {
-//   export interface PermissionInt {
-//     permission: Permission;
-//   }
-//   export interface UserInt {
-//     user: User;
-//   }
-//   export interface GenreInt {
-//     genre: Genre;
-//   }
-//   export interface BookInt {
-//     Book: Book;
-//   }
-//   export interface LibraryInt {
-//     Library: Library;
-//   }
-//   export interface RoleInt {
-//     Role: Role;
-//   }
-// }
 interface EntityTypes {
   User: typeof User;
   Library: typeof Library;

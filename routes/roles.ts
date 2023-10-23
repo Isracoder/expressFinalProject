@@ -9,13 +9,14 @@ import { addRoleToUser, removeRoleFromUser } from "../controllers/user.js";
 import { authenticate } from "../middlewares/auth/authenticate.js";
 import { PermissionName } from "../db/entities/Permission.js";
 import { getRolebyName } from "../controllers/role&permissions.js";
+import baseLogger from "../logger.js";
 
 // should authorize so only an admin can add new roles
 router.post(
   "/",
   authenticate,
   authorize(PermissionName.adminAccess),
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       if (!Object.values(RoleType).includes(req.body.name))
         throw "Invalid role name";
@@ -25,13 +26,14 @@ router.post(
       res.send(`${routeName} created successfully`);
     } catch (error) {
       console.log(error);
-      res.send("Error while creating role");
+      baseLogger.error("Error while creating role");
+      next(error);
     }
   }
 );
 
 // gets all roles
-router.get("/", (req, res) => {
+router.get("/", (req, res, next) => {
   // res.send(`In ${routeName} router`);
 
   const entityName: keyof EntityTypes = routeName;
@@ -47,12 +49,13 @@ router.get("/", (req, res) => {
     })
     .catch((error) => {
       console.error(error);
-      res.status(500).send("Something went wrong");
+      baseLogger.error("Something went wrong");
+      next(error);
     });
 });
 
 // gets permissions for a specific role
-router.get("/permissions", async (req, res) => {
+router.get("/permissions", async (req, res, next) => {
   try {
     const roleName = req.body.name;
     const role = await getRolebyName(roleName);
@@ -60,7 +63,8 @@ router.get("/permissions", async (req, res) => {
     res.send(role.permisssions);
   } catch (err) {
     console.log(err);
-    res.send("Error while getting permissions for that role");
+    baseLogger.error("Error while getting permissions for that role");
+    next(err);
   }
 });
 
@@ -69,7 +73,7 @@ router.put(
   "/user",
   authenticate,
   authorize(PermissionName.adminAccess),
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       let libraryId;
       if (req.body.roleName == RoleType.librarian)
@@ -82,7 +86,8 @@ router.put(
       res.send(`Role added successfully to user ` + user);
     } catch (err) {
       console.log(err);
-      res.send("Error while assigning role to user");
+      baseLogger.error("Error while assigning role to user");
+      next(err);
     }
   }
 );
@@ -91,7 +96,7 @@ router.delete(
   "/user",
   authenticate,
   authorize(PermissionName.adminAccess),
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       let libraryId;
       if (req.body.roleName == RoleType.librarian)
@@ -104,9 +109,10 @@ router.delete(
       res.send("Successfully deleted role from user" + user);
     } catch (error) {
       console.log(error);
-      res
-        .status(500)
-        .send("Something went wrong trying to delete a role from a user");
+      baseLogger.error(
+        "Something went wrong trying to delete a role from a user"
+      );
+      next(error);
     }
   }
 );

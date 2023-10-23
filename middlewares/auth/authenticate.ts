@@ -15,21 +15,22 @@ const authenticate = async (
   let token;
   try {
     token = req.headers["authorization"] || req.cookies["token"];
-    // console.log(req.cookies.token);
-    // if (!token) token = req.cookies["token"];
-    // console.log(token);
-    // console.log(req.headers);
     if (!token) throw "Token not sent";
     // tokenIsValid = jwt.verify(token, process.env.SECRET_KEY || '');
     tokenIsValid = jwt.verify(token, process.env.SECRET_KEY || "");
   } catch (error) {
     console.error(error);
     console.log(error);
-    res
-      .status(500)
-      .send(
-        "an error occurred while authenticating , please send a correct token"
-      );
+    next({
+      code: 401,
+      codeMeaning: "UnAuthenticated",
+      reason: "Invalid authentication token",
+    });
+    // res
+    //   .status(500)
+    //   .send(
+    //     "an error occurred while authenticating , please send a correct token"
+    //   );
     return;
   }
 
@@ -37,12 +38,17 @@ const authenticate = async (
     console.log("token is valid");
     const decoded = jwt.decode(token, { json: true });
     const user = await User.findOneBy({ email: decoded?.email || "" });
-    if (!user) res.send("No user found , authentication failed");
+    if (!user) res.status(400).send("No user found , authentication failed");
     res.locals.user = user;
     res.locals.libraries = user?.libraries;
     next();
   } else {
-    res.status(401).send("You are Unauthorized!");
+    // res.status(401).send("You are Unauthorized!");
+    next({
+      code: 401,
+      codeMeaning: "UnAuthenticated",
+      reason: "Invalid authentication token",
+    });
   }
 };
 

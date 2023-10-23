@@ -43,7 +43,4 @@ export class Review extends BaseEntity {
     scale: 2,
   })
   stars: number;
-
-  @Column({})
-  imageUrl: string; // change it later to store the aws s3 link
 }

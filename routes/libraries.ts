@@ -19,20 +19,21 @@ router.post(
   authenticate,
   authorize(PermissionName.adminAccess),
   validateLibrary,
-  async (req, res) => {
+  async (req, res, next) => {
     createLibrary(req.body.name, req.body.type, req.body.city, req.body.country)
       .then(() => {
         res.status(201).send("Library created successfully");
       })
       .catch((err) => {
         console.error(err);
-        res.status(500).send(err);
+        // res.status(500).send(err);
+        next(err);
       });
     // res.send(`${routeName} created successfully`);
   }
 );
 
-router.get("/", (req, res) => {
+router.get("/", (req, res, next) => {
   // res.send(`In ${routeName} router`);
 
   const entityName: keyof EntityTypes = routeName;
@@ -48,49 +49,55 @@ router.get("/", (req, res) => {
     })
     .catch((error) => {
       console.error(error);
-      res.status(500).send("Something went wrong");
+      // res.status(500).send("Something went wrong");
+      next(error);
     });
 });
 
-router.get("/in", async (req, res) => {
-  const country = req.query.country as string | undefined;
-  const city = req.query.city as string | undefined;
+router.get("/in", async (req, res, next) => {
+  try {
+    const country = req.query.country as string | undefined;
+    const city = req.query.city as string | undefined;
 
-  let arr: Library[] = [];
-  if (country && city) {
-    console.log(`In search library ${city} , ${country}`);
-    arr = await Library.find({
-      where: [{ country: country, city: city }],
-    });
-  } else if (country) {
-    console.log(`In country ${country}`);
-    arr = await Library.find({
-      where: [{ country: country }],
-    });
-  } else if (city) {
-    console.log(`In city ${city}`);
-    arr = await Library.find({
-      where: [{ city: city }],
-    });
-  } else res.send("Please enter the name of a city , country , or both");
-  if (!arr.length) {
-    res.send("No library was found in that area");
-    return;
+    let arr: Library[] = [];
+    if (country && city) {
+      console.log(`In search library ${city} , ${country}`);
+      arr = await Library.find({
+        where: [{ country: country, city: city }],
+      });
+    } else if (country) {
+      console.log(`In country ${country}`);
+      arr = await Library.find({
+        where: [{ country: country }],
+      });
+    } else if (city) {
+      console.log(`In city ${city}`);
+      arr = await Library.find({
+        where: [{ city: city }],
+      });
+    } else res.send("Please enter the name of a city , country , or both");
+    if (!arr.length) {
+      console.log("No library was found in that area");
+    }
+    res.send(arr);
+  } catch (err) {
+    console.log(err);
+    next(err);
   }
-  res.send(arr);
 });
 
-router.get("/id", async (req, res) => {
+router.get("/id", async (req, res, next) => {
   try {
     const lib = await getLibraryById(req.body.id);
     res.send(lib);
   } catch (error) {
     console.log(error);
-    res.send("Erorr while searching for library by id");
+    // res.send("Erorr while searching for library by id");
+    next(error);
   }
 });
 
-router.get("/id/books", async (req, res) => {
+router.get("/id/books", async (req, res, next) => {
   try {
     const lib = await getLibraryById(req.body.id);
     const ids = await getIdOfBooksWith(
@@ -115,7 +122,8 @@ router.get("/id/books", async (req, res) => {
     else res.send(copies);
   } catch (error) {
     console.log(error);
-    res.send("Erorr while searching for library by id");
+    // res.send("Erorr while searching for library by id");
+    next(error);
   }
 });
 
