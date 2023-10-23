@@ -18,181 +18,309 @@ book = {
 
 Relations with other entities include : Genres , Libraries , Copies , Reviews , User (giveaway books) , User (wanted books)
 
-## Current availble apis :
+# Current available apis :
 
-### To Create and add a book to the DB
+## 1. Creating a book 🎈
+  **Description** : This route creates a new book and saves it in the database    
+  
+  ### How to access the route ?
+     - **Url** : "/books"
+     - **Method** : POST
+  ### Security requirements
+   - **Authentication** : Yes   
+   - **Authorization** : must have admin access
+   
+  #### Request Body 
+  | **property** | **type** |              **description**              | **required** |
+  |:------------:|:--------:|:-----------------------------------------:|:------------:|
+  |     title    |  string  |               the book title              |      Yes     |
+  |    author    |  string  |              the book author              |      Yes     |
+  |    pubYear   |  number  |            the publication year           |      Yes     |
+  |   language   |  string  | the original language it was published in |      Yes     |
+  
+  #### Responses:
+    - Status 201 created  , with the created book object
+  ```json
+    {
+      "id" : 4 ,
+      "title" : "Tired and bored" , 
+      "author" : "isra" ,
+      "language": "English"
+    }
+  ```
+  
+  ##### Error responses :
+    - Status 400 , Error creating book
+    - Status 500 , Something went wrong
 
+
+## 2. To Get all available books 🎈
+
+
+### How to access the route ?
+   - **Url** : "/books"
+   - **Method** : GET
+### Security requirements
+ - **Authentication** : No
+ - **Authorization** : No
+ 
+#### Query Params
+
+| **property** | **type** |         **description**         | **required** | **Default** |
+|:------------:|:--------:|:-------------------------------:|:------------:|:-----------:|
+|     page     |  number  | the page you would like to view |      No      |      1      |
+|   pageSize   |  number  | the number of items in the page |      No      |      10     |
+
+#### Responses:
+  - Status 200 ok , with the list of books
 ```json
-  - url : "/books"
-  - method : POST
-  - authentication : Yes
-  - authorization : must have admin access
-  - requirements :
-    - book title : sent in req.body.title as a string
-    - book author : sent in req.body.author as a string
-    - book language: sent in req.body.language as a string
-    - publication year: sent in req.body.pubYear
-  - responses :
-    - Status 201 , message : none , payload: the created book object
-    - Status 400 , message : "Error creating book"
+[
+  {
+    "id" : 4 ,
+    "title" : "Tired and bored" , 
+    "author" : "isra" ,
+    "language": "English"
+  } ,
+ {
+    "id" : 5 ,
+    "title" : "Energized and content" , 
+    "author" : "not isra" ,
+    "language": "Arabic"
+  } ,
+]
 ```
 
-### To Get all available books
+##### Error responses :
+  - Status 400 , Error getting books
+  - Status 500 , Something went wrong
 
+
+## 3. Searching for a book by specific attributes 🎈
+
+### How to access the route ?
+   - **Url** : "/books/with"
+   - **Method** : GET
+### Security requirements
+ - **Authentication** : No
+ - **Authorization** : No
+ 
+#### Query Params
+
+The query params such as title or author are not case-sensitive     
+
+| **property** | **type** |              **description**             | **required** |
+|:------------:|:--------:|:----------------------------------------:|:------------:|
+|   language   |  string  |      the page you would like to view     |      No      |
+|     title    |  string  |     the book title or a word from it     |      No      |
+|     year     |  number  |           the publication year           |      No      |
+|    author    |  string  | the author's first, last, or middle name |      No      |
+
+#### Responses:
+  - Status 200 ok , with the list of books
 ```json
-  - url : "/books"
-  - method : GET
-  - authentication : No
-  - authorization : No
-  - requirements :
-  - optional:
-    - page number : in req.query.page as a query param , default 1
-    - page size : in req.query.pageSize as a query param , default 10
-  - responses :
-    - Status 200 , message : paginated list of book objects
-    - Status 500 , message : "Unable to retrieve books"
+[
+  {
+    "id" : 4 ,
+    "title" : "Tired and bored" , 
+    "author" : "isra" ,
+    "language": "English"
+  } ,
+ {
+    "id" : 5 ,
+    "title" : "Energized and content" , 
+    "author" : "not isra" ,
+    "language": "Arabic"
+  } ,
+]
 ```
 
-### Searching for a book by specific attributes
+##### Error responses :
+  - Status 400 , Error getting books
+  - Status 500 , Something went wrong
 
+## 4. Searching for a book by id 🎈
+
+
+### How to access the route ?
+   - **Url** : "/books/id"
+   - **Method** : GET
+### Security requirements
+ - **Authentication** : No
+ - **Authorization** : No
+
+ #### Request Body 
+| **property** | **type** |              **description**              | **required** |
+|:------------:|:--------:|:-----------------------------------------:|:------------:|
+|     id       |  number  |               the book id                 |      Yes     |
+
+#### Responses:
+  - Status 200 ok , with the specific book
+    
 ```json
-- url : "/books/with"
-- method : GET
-- authentication : No
-- authorization : No
-- requirements : at least one of the optional query parameters
-- optional :
-    - language : sent in req.query.language
-    - author : sent in req.query.author , (can be first name or last , no case sensitivity)
-    - title : sent in req.query.title
-    - pubYear: sent in req.query.year
-- example : "/books/with?language=English & author=tolkien" returns all books where the language is english and the author name includes tolkien
-- responses :
-  - Status 200 , message : none , payload : the list of books that matched the query
-  - Status 400 , message : "Error while searching for books"
+ {
+    "id" : 5 ,
+    "title" : "Energized and content" , 
+    "author" : "not isra" ,
+    "language": "Arabic"
+  } 
 ```
+Or an error message indicating that something went wrong , or that the book with that id doesn't exist.
 
-### Searching for a book by id
 
-```json
-- url : "/books/id"
-- method : GET
-- authentication : No
-- authorization : No
-- requirements : id sent in req.body.id
-- responses :
-  - Status 200 , message : none , payload : the book with that id
-  - Status 500 , message : "Error while retrieving book by id"
-```
 
-### Endpoints for book lists :
+## Endpoints for book lists :
 
-- ### Want list :
+- ## Want list 🛒 :
 
-  - #### Adding a book to the user's want-list
+  - ### Adding a book to the user's want-list 🎈
+  
+    ### How to access the route ?
+       - **Url** : "/books/want"
+       - **Method** : PUT
+    ### Security requirements
+     - **Authentication** : Yes
+     - **Authorization** : No
+    
+     #### Request Body 
+    | **property** | **type** |              **description**              | **required** |
+    |:------------:|:--------:|:-----------------------------------------:|:------------:|
+    |     id       |  number  |               the book id                 |      Yes     |
+    
+    #### Responses:
+    Status 200 ok , `"book added to want list successfully"`
 
-    ```json
-    - url : "/books/want"
-    - method : PUT
-    - authentication : Yes
-    - authorization : No
-    - requirements : book id sent in req.body.id
-    - responses :
-        - Status 200 , message : "Book added to want list successfully"
-        - Status 500 , message : "Error while adding a book to your want-list"
-    ```
+    Or an error message indicating that something went wrong , or that the book with that id doesn't exist.
 
-  - #### Getting all books on the user's want-list
 
-    ```json
-    - url : "/books/want"
-    - method : GET
-    - authentication : Yes
-    - authorization : No
-    - requirements : none
-    - responses :
-        - Status 200 , message : none , payload : list of books on the want-list
-        - Status 500 , message : "Error while retrieving your want-list"
-    ```
+  - ### Getting all books on the user's want-list 🎈
+    
+    ### How to access the route ?
+       - **Url** : "/books/want"
+       - **Method** : GET
+    ### Security requirements
+     - **Authentication** : Yes
+     - **Authorization** : No
+    
+    #### Responses:
+    Status 200 ok , a list of all book objects on the want-list 
 
-  - #### Deleting a book from the user's want-list
+    Or an error message indicating that something went wrong 
 
-    ```json
-    - url : "/books/want"
-    - method : Delete
-    - authentication : Yes
-    - authorization : No
-    - requirements : book id sent in req.body.id
-    - responses :
-        - Status 200 , message : "Book removed from your want-list successfully"
-        - Status 500 , message : "Error while removing a book from your want-list"
-    ```
 
-- ### Giveaway list :
+  - ### Deleting a book from the user's want-list 🎈
+    
+    ### How to access the route ?
+       - **Url** : "/books/want"
+       - **Method** : DELETE
+    ### Security requirements
+     - **Authentication** : Yes
+     - **Authorization** : No
+    
+     #### Request Body 
+    | **property** | **type** |              **description**              | **required** |
+    |:------------:|:--------:|:-----------------------------------------:|:------------:|
+    |     id       |  number  |               the book id                 |      Yes     |
+    
+    #### Responses:
+    Status 200 ok , `"book removed from your want-list successfully"`
 
-  - #### Adding a book to the user's giveaway-list
+    Or an error message indicating that something went wrong , or that the book with that id doesn't exist.
 
-    ```json
-    - url : "/books/giveaway"
-    - method : PUT
-    - authentication : Yes
-    - authorization : No
-    - requirements : book id sent in req.body.id
-    - responses :
-        - Status 200 , message : "Book added to giveaway list successfully"
-        - Status 500 , message : "Error while adding a book to your giveaway-list"
-    ```
+- ## Giveaway list 🎁 :
 
-  - #### Getting all books on the user's giveaway-list
+  - ### Adding a book to the user's giveaway-list 🎈
+  
+    ### How to access the route ?
+       - **Url** : "/books/giveaway"
+       - **Method** : PUT
+    ### Security requirements
+     - **Authentication** : Yes
+     - **Authorization** : No
+    
+     #### Request Body 
+    | **property** | **type** |              **description**              | **required** |
+    |:------------:|:--------:|:-----------------------------------------:|:------------:|
+    |     id       |  number  |               the book id                 |      Yes     |
+    
+    #### Responses:
+    Status 200 ok , `"book added to  giveaway-list successfully"`
 
-    ```json
-    - url : "/books/giveaway"
-    - method : GET
-    - authentication : Yes
-    - authorization : No
-    - requirements : none
-    - responses :
-        - Status 200 , message : none , payload : list of books on the giveaway-list
-        - Status 500 , message : "Error while retrieving your giveaway-list"
-    ```
+    Or an error message indicating that something went wrong , or that the book with that id doesn't exist.
 
-  - #### Deleting a book from the user's giveaway-list
+  - ### Getting all books on the user's giveaway-list 🎈
 
-    ```json
-    - url : "/books/giveaway"
-    - method : Delete
-    - authentication : Yes
-    - authorization : No
-    - requirements : book id sent in req.body.id
-    - responses :
-        - Status 200 , message : "Book removed from your giveaway-list successfully"
-        - Status 500 , message : "Error while removing a book from your giveaway-list"
-    ```
+   
+    ### How to access the route ?
+       - **Url** : "/books/giveaway"
+       - **Method** : GET
+    ### Security requirements
+     - **Authentication** : Yes
+     - **Authorization** : No
+    
+    #### Responses:
+    Status 200 ok , a list of all book objects on the giveaway-list 
 
-### Using AWS rekognition to try to find book title in image
+    Or an error message indicating that something went wrong 
 
-```json
-- url : "/books/find/title"
-- method : GET
-- authentication : No
-- authorization : No
-- requirements : public Url image sent in req.body.img
-- responses :
-  - Status 200 , message : none , payload : list of strings that might be the title or part of it
-  - Status 500 , message : "Error while getting title text from image"
-```
+
+  - ### Deleting a book from the user's giveaway-list 🎈
+    
+    ### How to access the route ?
+       - **Url** : "/books/giveaway"
+       - **Method** : DELETE
+    ### Security requirements
+     - **Authentication** : Yes
+     - **Authorization** : No
+    
+     #### Request Body 
+    | **property** | **type** |              **description**              | **required** |
+    |:------------:|:--------:|:-----------------------------------------:|:------------:|
+    |     id       |  number  |               the book id                 |      Yes     |
+    
+    #### Responses:
+    Status 200 ok , `"book removed from your giveaway-list successfully"`
+
+    Or an error message indicating that something went wrong , or that the book with that id doesn't exist.
+
+### Using AWS rekognition 👓 to try to find book title in image 🎈
+
+
+  ### How to access the route ?
+   - **Url** : "/books/find/title"
+   - **Method** : GET
+  ### Security requirements
+   - **Authentication** : No
+   - **Authorization** : No
+  
+   #### Request Body 
+  | **property** | **type** |              **description**              | **required** |
+  |:------------:|:--------:|:-----------------------------------------:|:------------:|
+  |     img      |  string  |       the public url of the image         |      Yes     |
+  
+  #### Responses:
+  Status 200 ok , list of strings that might be the title or part of it
+  ```json
+[ "This is in" , "the title" , "random" , "words"]
+  ```
+
+  Or an error message indicating that something went wrong with a relevant status code
+    
 
 ### Uploading book cover image to AWS S3 bucket
 
-```json
-- url : "/books/image"
-- method : GET
-- authentication : Yes
-- authorization : Yes , admin access
-- requirements :
-    - public url of the image in req.body.img
-    - book id in req.body.id
-- responses :
-  - Status 200 , message : none , payload : the book of which the id was provided
-  - Status 500 , message : "Error while trying to add book image to s3 bucket" ;
-```
+ ### How to access the route ?
+   - **Url** : "/books/image"
+   - **Method** : PUT
+  ### Security requirements
+   - **Authentication** : Yes
+   - **Authorization** : Yes , admin access
+  
+   #### Request Body 
+  | **property** | **type** |              **description**              | **required** |
+  |:------------:|:--------:|:-----------------------------------------:|:------------:|
+  |     img      |  string  |       the public url of the image         |      Yes     |
+  |     id       |  number  |             the book id                   |      Yes     |  
+  
+  #### Responses:
+  Status 200 ok , returns the book of which the id was provided     
+  Or a relevant error message with status code
