@@ -70,7 +70,7 @@ router.put(
       const role = await getRolebyName(roleName);
       role.permisssions.push(permission);
       await role.save();
-      res.send("Permission added to role successfully");
+      res.send(role);
     } catch (err) {
       console.log(err);
       // res.send("Error while adding a permission to a role");

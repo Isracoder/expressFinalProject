@@ -10,217 +10,403 @@ user = {
   username: string,
   password: string,
   email: string,
-  DOB: Date,
+  DOB: date,
   country: string,
   city: string,
 };
 ```
 
-Relations with other entities include :
+Relations with other entities include : Libraries , Reviews , Roles , Users (friends) , Books (user-giveaway-list) , Books (user-want-list) ;
 
-## Current availble apis :
+# Current available apis :
 
-### To Create and add a user to the DB
+## 1. Creating a user 🎈
 
-```json
-    - url : "/users"
-    - method : POST
-    - authentication : Yes
-    - authorization : must have admin access
-    - requirements :
-        - name : sent in req.body.username
-        - password : sent in req.body.password
-        - email: sent in req.body.email
-        - date of birth : sent in req.body.DOB , yyyy/mm/dd
-    - optional :
-        - country : sent in req.body.country
-        - city : sent in req.body.city
-    - responses :
-    - Status 201 , message : none , payload: the created user object
-    - Status 400 , message : "Error creating user"
-```
+**Description** : This route creates a new user and saves it in the database , the password is also encrypted for security
 
-### To Get all available users
+### How to access the route ?
 
-```json
-  - url : "/users"
-  - method : GET
-  - authentication : No
-  - authorization : No
-  - requirements :
-  - optional:
-    - page number : in req.query.page as a query param , default 1
-    - page size : in req.query.pageSize as a query param , default 10
-  - responses :
-    - Status 200 , message : paginated list of user objects
-    - Status 500 , message : "Unable to retrieve users"
-```
+     - **Url** : "/users"
+     - **Method** : POST
 
-### Logging in a user (and stores cookie) for future authentication
+### Security requirements
+
+- **Authentication** : No
+- **Authorization** : No
+
+#### Request Body
+
+| **property** | **type** |             **description**             | **required** |
+| :----------: | :------: | :-------------------------------------: | :----------: |
+|   username   |  string  |             the user's name             |     Yes      |
+|    email     |  string  |            the user's email             |     Yes      |
+|   password   |  number  |            account password             |     Yes      |
+|   country    |  string  | the country where the user is currently |     Yes      |
+|     city     |  string  |  the city where the user is currently   |     Yes      |
+
+#### Responses:
+
+1. Status 201 created , with the created user object
 
 ```json
-- url : "/users/login"
-- method : POST
-- authentication : No
-- authorization : No
-- requirements :
-    - email : send in req.body.email
-    - password : send in req.body.password
-- responses :
-  - Status 200 , message : none , payload :  data object containing the jwt token
-  - Status 401 , message : describes error in login process
+{
+  "id": 4,
+  "username": "not isra",
+  "email": "notisra@gmail.com",
+  "password": "378343jdjfjdkjf38343njn",
+  "country": "Palestine",
+  "city": "Bethlehem"
+}
 ```
 
-### Logging out a user (deletes the cookie from the users side)
+1. An appropriate error response with a status code
+
+## 2. To Get all available users 🎈
+
+### How to access the route ?
+
+- **Url** : "/users"
+- **Method** : GET
+
+### Security requirements
+
+- **Authentication** : No
+- **Authorization** : No
+
+#### Query Params
+
+| **property** | **type** |         **description**         | **required** | **Default** |
+| :----------: | :------: | :-----------------------------: | :----------: | :---------: |
+|     page     |  number  | the page you would like to view |      No      |      1      |
+|   pageSize   |  number  | the number of items in the page |      No      |     10      |
+
+#### Responses:
+
+1. Status 200 ok , a list which contains the current page , the page size , the total number of objects in the db , and a list called "info" which contains the objects
+
+   ```json
+   [
+    "page": 1 ,
+    "pageSize" : 2 ,
+    "total" : 8 ,
+    "info": [
+      {
+        "id": 4,
+        "username": "not isra",
+        "email": "notisra@gmail.com",
+        "password": "378343jdjfjdkjf38343njn",
+        "country": "Palestine",
+        "city": "Bethlehem"
+      } ,
+      {
+        "id": 5,
+        "username": "someone",
+        "email": "someone@gmail.com",
+        "password": "encrypteddkfjdkj888k3",
+        "country": "Jordan",
+        "city": "Bethlehem"
+      } ,
+    ]
+   ]
+   ```
+
+1. An appropriate error message and status code
+
+## 3. Logging in as a specific user🎈
+
+**Description** : This route logs in the user and creates a jwt token valid for a certain amount of time. The token is returned and is also stored in the cookies.
+
+### How to access the route ?
+
+- **Url** : "/users/login"
+- **Method** : POST
+
+### Security requirements
+
+- **Authentication** : No
+- **Authorization** : No
+
+#### Request Body
+
+| **property** | **type** |                  **description**                  | **required** |
+| :----------: | :------: | :-----------------------------------------------: | :----------: |
+|    email     |  string  | The email of the user you would like to log in as |     Yes      |
+|   password   |  string  |               The account password                |     Yes      |
+
+#### Responses:
+
+1. Status 200 ok , with the data object that contains the jwt Token , the username , and id ;
+
+1. An appropriate error message and status code
+
+##### Error responses :
+
+- Status 400 , Error getting users
+- Status 500 , Something went wrong
+
+## 4. Logging out for a usr 🎈
+
+This route clears the cookies and logs out the user
+
+### How to access the route ?
+
+- **Url** : "/users/logout"
+- **Method** : GET
+
+### Security requirements
+
+- **Authentication** : Yes
+- **Authorization** : No
+
+#### Responses:
+
+- Status 200 ok , with a message of "logged out"
+
+## 5. Sending emails to users with AWS SES 🎈
+
+### How to access the route ?
+
+- **Url** : "/users/send-email"
+- **Method** : POST
+
+### Security requirements
+
+- **Authentication** : Yes
+- **Authorization** : Yes , admin access
+
+| **property** | **type** |                   **description**                   | **required** |
+| :----------: | :------: | :-------------------------------------------------: | :----------: |
+|  recipient   |  string  |   The email address of the recipient of the email   |     Yes      |
+|   subject    |  string  |                  The email subject                  |     Yes      |
+|   message    |  string  | The message you would like to send inside the email |     Yes      |
+
+#### Responses:
+
+- Status 200 ok , with a message of "Email sent successfully"
+
+## 6. Endpoints for views of user data :
+
+- ### 1. Displays a graph representing the genres of books the user has read 🎈
+
+  ### How to access the route ?
+
+  - **Url** : "/users/data/genres"
+  - **Method** : GET
+
+  ### Security requirements
+
+  - **Authentication** : Yes
+  - **Authorization** : No
+
+  #### Responses:
+
+1. The rendered view of the data
+
+<p align="center">
+  <img src="../views/genreData.png" alt="Image Description" width="500" height="400"  />
+</p>
+
+1. An error message indicating something went wrong along with a status code
+
+- ### 2. Displays a graph representing the number of books the user has this year 🎈
+
+  ### How to access the route ?
+
+  - **Url** : "/users/data/books"
+  - **Method** : GET
+
+  ### Security requirements
+
+  - **Authentication** : Yes
+  - **Authorization** : No
+
+  #### Responses:
+
+1. The rendered view of the data
+
+<p align="center">
+  <img src="../views/bookData.png" alt="Image Description" width="500" height="400" />
+</p>
+
+1. An error message indicating something went wrong along with a status code
+
+### Gets all books that the user wants that are available in city libraries🎈
+
+### How to access the route ?
+
+- **Url** : "/users/books/available"
+- **Method** : GET
+
+### Security requirements
+
+- **Authentication** : Yes
+- **Authorization** : No
+
+#### Responses:
+
+Status 200 ok , list of copies or an empty list if nothing was found
 
 ```json
-- url : "/users/logout"
-- method : GET
-- authentication : Yes
-- authorization : No
-- requirements : none
-- responses :
-  - Status 200 , message : "logged out"
-
+  [
+    {
+      "id": 1,
+        "status": "unavailable",
+        "book": {
+            "id": 1, ...
+        },
+        "library": {
+            "id": 1, ...
+        }
+    },
+    {
+      "id": 2,
+        "status": "available",
+        "book": {
+            "id": 1, ...
+        },
+        "library": {
+            "id": 1, ...
+        }
+    },
+  ]
 ```
 
-### Sending emails to users
+Or an error message indicating that something went wrong with a relevant status code
+
+## 7. Adding a new friend 🎈
+
+### How to access the route ?
+
+- **Url** : "/users/friends"
+- **Method** : PUT
+
+### Security requirements
+
+- **Authentication** : Yes
+- **Authorization** : No
+
+#### Request Body
+
+| **property** | **type** | **description** | **required** |
+| :----------: | :------: | :-------------: | :----------: |
+|      id      |  number  |  the friend id  |     Yes      |
+
+#### Responses:
+
+1. Status 200 ok , returns the message "Friend added successfully"
+1. Or a relevant error message with status code
+
+## 8. Removing a new friend 🎈
+
+### How to access the route ?
+
+- **Url** : "/users/friends"
+- **Method** : DELETE
+
+### Security requirements
+
+- **Authentication** : Yes
+- **Authorization** : No
+
+#### Request Body
+
+| **property** | **type** | **description** | **required** |
+| :----------: | :------: | :-------------: | :----------: |
+|      id      |  number  |  the friend id  |     Yes      |
+
+#### Responses:
+
+1. Status 200 ok , returns the message "Friend removed successfully"
+1. Or a relevant error message with status code
+
+## 9. Getting Friend Recommendations🎈
+
+### How to access the route ?
+
+- **Url** : "/users/friend-recs"
+- **Method** : GET
+
+### Security requirements
+
+- **Authentication** : Yes
+- **Authorization** : No
+
+#### Responses:
+
+1. Status 200 ok , returns a list of reccomendations from friends as so :
 
 ```json
-- url : "/users/send-email"
-- method : POST
-- authentication : Yes
-- authorization : Yes , admin access
-- requirements :
-    - recipient : email address of a recipient or list of addresses , send in req.body.recipient
-    - subject : the email subject  , send in req.body.subject
-    - message: the email message , send in req.body.message
-- responses :
-  - Status 200 , message : "Email sent successfully"
-  - Status 500 , message : "Error while sending email"
+[
+  {
+    "title": "A great book",
+    "author": "someone",
+    "rating": "4.5",
+    "friend": "BestFriend"
+  },
+  {
+    "title": "A very amazing book",
+    "author": "someone's sister",
+    "rating": "4.75",
+    "friend": "Your friend"
+  }
+]
 ```
 
-### Renders a view in the browser of a chart representing genres of books read
+1. Or a relevant error message with status code
 
-```json
-- url : "/users/data"
-- method : GET
-- authentication : Yes
-- authorization : No
-- requirements :
-- responses :
-  - Status 200 , payload : renders a chart in the browser using chart.js
-  - Status 500 , message : "Error while rendering chart data"
-```
+## 10. Getting all friends of the user 🎈
 
-### Endpoints for user lists :
+### How to access the route ?
 
-- ### Want list :
+- **Url** : "/users/friends"
+- **Method** : GET
 
-  - #### Adding a user to the user's want-list
+### Security requirements
 
-    ```json
-    - url : "/users/want"
-    - method : PUT
-    - authentication : Yes
-    - authorization : No
-    - requirements : user id sent in req.body.id
-    - responses :
-        - Status 200 , message : "User added to want list successfully"
-        - Status 500 , message : "Error while adding a user to your want-list"
-    ```
+- **Authentication** : Yes
+- **Authorization** : No
 
-  - #### Getting all users on the user's want-list
+#### Responses:
 
-    ```json
-    - url : "/users/want"
-    - method : GET
-    - authentication : Yes
-    - authorization : No
-    - requirements : none
-    - responses :
-        - Status 200 , message : none , payload : list of users on the want-list
-        - Status 500 , message : "Error while retrieving your want-list"
-    ```
+1. Status 200 ok , returns a list of Users that represent the logged-in user's friends . (might be empty)
+1. Or a relevant error message with status code
 
-  - #### Deleting a user from the user's want-list
+## 11. Getting books that you want and someone is giving away in your city🎈
 
-    ```json
-    - url : "/users/want"
-    - method : Delete
-    - authentication : Yes
-    - authorization : No
-    - requirements : user id sent in req.body.id
-    - responses :
-        - Status 200 , message : "User removed from your want-list successfully"
-        - Status 500 , message : "Error while removing a user from your want-list"
-    ```
+### How to access the route ?
 
-- ### Giveaway list :
+- **Url** : "/users/giveaway"
+- **Method** : GET
 
-  - #### Adding a user to the user's giveaway-list
+### Security requirements
 
-    ```json
-    - url : "/users/giveaway"
-    - method : PUT
-    - authentication : Yes
-    - authorization : No
-    - requirements : user id sent in req.body.id
-    - responses :
-        - Status 200 , message : "User added to giveaway list successfully"
-        - Status 500 , message : "Error while adding a user to your giveaway-list"
-    ```
+- **Authentication** : Yes
+- **Authorization** : No
 
-  - #### Getting all users on the user's giveaway-list
+#### Responses:
 
-    ```json
-    - url : "/users/giveaway"
-    - method : GET
-    - authentication : Yes
-    - authorization : No
-    - requirements : none
-    - responses :
-        - Status 200 , message : none , payload : list of users on the giveaway-list
-        - Status 500 , message : "Error while retrieving your giveaway-list"
-    ```
+1. Status 200 ok , returns the list of Books found in your city that someone is giving away and that you want
+1. Or a relevant error message with status code
 
-  - #### Deleting a user from the user's giveaway-list
+## 12. Adding the image of a User to the AWS S3 bucket for user-images🎈
 
-    ```json
-    - url : "/users/giveaway"
-    - method : Delete
-    - authentication : Yes
-    - authorization : No
-    - requirements : user id sent in req.body.id
-    - responses :
-        - Status 200 , message : "User removed from your giveaway-list successfully"
-        - Status 500 , message : "Error while removing a user from your giveaway-list"
-    ```
+### How to access the route ?
 
-### Using AWS rekognition to try to find user title in image
+- **Url** : "/users/image"
+- **Method** : PUT
 
-```json
-- url : "/users/find/title"
-- method : GET
-- authentication : No
-- authorization : No
-- requirements : public Url image sent in req.body.img
-- responses :
-  - Status 200 , message : none , payload : list of strings that might be the title or part of it
-  - Status 500 , message : "Error while getting title text from image"
-```
+### Security requirements
 
-### Uploading user cover image to AWS S3 bucket
+- **Authentication** : Yes
+- **Authorization** : No
 
-```json
-- url : "/users/image"
-- method : GET
-- authentication : Yes
-- authorization : Yes , admin access
-- requirements :
-    - public url of the image in req.body.img
-    - user id in req.body.id
-- responses :
-  - Status 200 , message : none , payload : the user of which the id was provided
-  - Status 500 , message : "Error while trying to add user image to s3 bucket" ;
-```
+#### Request Body
+
+| **property** | **type** |      **description**      | **required** |
+| :----------: | :------: | :-----------------------: | :----------: |
+|     img      |  string  | the public url of the img |     Yes      |
+
+#### Responses:
+
+1. Status 200 ok , returns the message "Image added successfully"
+1. Or a relevant error message with status code

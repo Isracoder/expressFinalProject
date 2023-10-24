@@ -25,14 +25,6 @@ export class Review extends BaseEntity {
   @Column({})
   text: string;
 
-  @ManyToOne(() => Book, (book) => book.reviews, { eager: true })
-  @JoinColumn()
-  book: Relation<Book>;
-
-  @ManyToOne(() => User, (user) => user.reviews)
-  @JoinColumn()
-  user: Relation<User>;
-
   @Column({})
   createdAt: Date;
 
@@ -43,4 +35,11 @@ export class Review extends BaseEntity {
     scale: 2,
   })
   stars: number;
+  @ManyToOne(() => Book, (book) => book.reviews, { eager: true })
+  @JoinColumn()
+  book: Relation<Book>;
+
+  @ManyToOne(() => User, (user) => user.reviews)
+  @JoinColumn()
+  user: Relation<User>;
 }

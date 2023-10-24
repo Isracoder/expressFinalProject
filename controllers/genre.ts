@@ -1,9 +1,16 @@
 import { Genre } from "../db/entities/Genre.js";
 import { Review } from "../db/entities/Review.js";
 import { getBookbyId } from "./book.js";
+import dataSource from "../db/index.js";
 
 const getGenreByName = async (name: string) => {
-  const genre = await Genre.findOne({ where: { name: name } });
+  // const genre = await Genre.findOne({ where: { name: name } });
+  const genre = await dataSource
+    .createQueryBuilder()
+    .select("genre")
+    .from(Genre, "genre")
+    .where("LOWER(genre.name) = LOWER(:name)", { name })
+    .getOne();
   if (!genre) throw "No genre by that name";
   else return genre;
 };

@@ -52,13 +52,13 @@ router.post("/", authenticate, async (req, res, next) => {
     }
     const review = new Review();
     review.text = text || "";
-    review.imageUrl = imageUrl || "";
+    // review.imageUrl = imageUrl || "";
     review.stars = stars;
     review.user = user;
     review.book = book;
     review.createdAt = new Date();
     await review.save();
-    res.send("Review created successfully");
+    res.status(201).send(review);
   } catch (err) {
     console.log(err);
     baseLogger.error("An error occurred while creating a new review");
@@ -124,9 +124,6 @@ router.get("/user", async (req, res, next) => {
     });
 });
 
-// book ? title = & id = &
-router.post("/book");
-
 // get all reviews for a certain book
 router.get("/book", async (req, res, next) => {
   try {
@@ -137,7 +134,20 @@ router.get("/book", async (req, res, next) => {
     const allReviews = reviews.filter((review) => review.book.id == bookid);
     if (!allReviews.length)
       console.log("No reviews where found for that book id");
-    res.send(allReviews);
+    const payload: PaginateEntityList<Review> = {
+      page: req.query.page?.toString() || "1",
+      pageSize: req.query.pageSize?.toString() || "10",
+      list: allReviews,
+    };
+    paginateList(payload)
+      .then((data) => {
+        res.send(data);
+      })
+      .catch((err) => {
+        console.log(err);
+        next(err);
+        // res.send("Error while finding reviews for this user");
+      });
   } catch (err) {
     next(err);
   }

@@ -69,7 +69,7 @@ router.put(
       const genre = await getGenreByName(req.body.genre);
       book.genres.push(genre);
       await book.save();
-      res.status(200).send("Genre added to book successfully");
+      res.status(200).send(book);
     } catch (error) {
       console.log(error);
       next(error);
@@ -77,5 +77,15 @@ router.put(
     }
   }
 );
+
+router.get("/name", async (req, res, next) => {
+  try {
+    const genre = await getGenreByName(req.body.name);
+    res.send(genre);
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
 
 export default router;

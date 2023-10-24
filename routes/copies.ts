@@ -44,35 +44,6 @@ router.post(
     }
   }
 );
-
-// maybe get only copies in the same city as me ? default it to my city , or to the city sent
-router.get("/book", async (req, res, next) => {
-  try {
-    const id = parseInt(req.body.bookId);
-    if (!id) {
-      res.send("Send a valid bookId number");
-      return;
-    }
-    // const book = await getBookbyId(id);
-    const copies = await Copy.find({
-      where: [
-        {
-          book: {
-            id: id,
-          },
-        },
-      ],
-    });
-    if (!copies) {
-      res.send("No copies were found for that book id");
-    } else res.send(copies);
-  } catch (err) {
-    console.log(err);
-    next(err);
-    // res.send("Something went wrong trying to find copies of that book");
-  }
-});
-
 router.get("/", (req, res, next) => {
   // res.send(`In ${routeName} router`);
 
@@ -92,6 +63,34 @@ router.get("/", (req, res, next) => {
       // res.status(500).send("Something went wrong");
       next(error);
     });
+});
+// maybe get only copies in the same city as me ? default it to my city , or to the city sent
+router.get("/book", async (req, res, next) => {
+  try {
+    const id = parseInt(req.body.bookId);
+    if (!id) {
+      res.send("Send a valid bookId number");
+      return;
+    }
+    // const book = await getBookbyId(id);
+    const copies = await Copy.find({
+      where: [
+        {
+          book: {
+            id: id,
+          },
+        },
+      ],
+    });
+    if (!copies) {
+      console.log("No copies were found for that book id");
+    }
+    res.send(copies);
+  } catch (err) {
+    console.log(err);
+    next(err);
+    // res.send("Something went wrong trying to find copies of that book");
+  }
 });
 
 router.put(

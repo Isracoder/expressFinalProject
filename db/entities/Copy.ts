@@ -18,7 +18,6 @@ import { Book } from "./Book.js";
 export enum copyStatus {
   available = "available",
   unavailable = "unavailable",
-  changeStatus = "changeStatus",
 }
 
 @Entity()

@@ -21,8 +21,9 @@ router.post(
   validateLibrary,
   async (req, res, next) => {
     createLibrary(req.body.name, req.body.type, req.body.city, req.body.country)
-      .then(() => {
-        res.status(201).send("Library created successfully");
+      .then((library) => {
+        console.log("Library created successfully");
+        res.status(201).send(library);
       })
       .catch((err) => {
         console.error(err);
@@ -75,7 +76,11 @@ router.get("/in", async (req, res, next) => {
       arr = await Library.find({
         where: [{ city: city }],
       });
-    } else res.send("Please enter the name of a city , country , or both");
+    } else
+      throw {
+        code: 400,
+        reason: "Please enter the name of a city , country , or both",
+      };
     if (!arr.length) {
       console.log("No library was found in that area");
     }
@@ -118,8 +123,8 @@ router.get("/id/books", async (req, res, next) => {
     });
 
     if (!copies.length)
-      res.send("No books in that library with those attributes");
-    else res.send(copies);
+      console.log("No books in that library with those attributes");
+    res.send(copies);
   } catch (error) {
     console.log(error);
     // res.send("Erorr while searching for library by id");

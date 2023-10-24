@@ -250,8 +250,8 @@ router.get("/books/available", authenticate, async (req, res, next) => {
       });
     });
     if (!available.length)
-      res.send("No copies that the user wants are currently available");
-    console.log("copies were found");
+      console.log("No copies that the user wants are currently available");
+    // console.log("copies were found");
     res.send(available); // consider paginating the result
   } catch (err) {
     console.log(err);
@@ -262,7 +262,7 @@ router.get("/books/available", authenticate, async (req, res, next) => {
   }
 });
 
-router.post("/friends", authenticate, async (req, res, next) => {
+router.put("/friends", authenticate, async (req, res, next) => {
   try {
     const user = res.locals.user;
     if (!(user instanceof User)) {
@@ -381,8 +381,9 @@ router.get("/friend-recs", authenticate, async (req, res, next) => {
 
     let bookRecs = await getRecsFromFriends(userFriends, alreadyRead);
     if (!bookRecs) {
-      res.send("No book recommendations from friends");
-    } else res.send(bookRecs);
+      console.log("No book recommendations from friends");
+    }
+    res.send(bookRecs);
   } catch (error) {
     console.log(error);
     baseLogger.error("Error while getting recommendations");
@@ -406,10 +407,10 @@ router.get("/friends", authenticate, async (req, res, next) => {
       relations: ["friends"],
     });
     if (!loadedUser) {
-      res.send("Are you logged in correctly?");
-    } else if (!loadedUser.friends)
-      res.send("This user hasn't added any friends");
-    else res.send(loadedUser.friends);
+      throw { code: 400, reason: "Are you logged in correctly?" };
+    }
+    if (!loadedUser.friends) console.log("This user hasn't added any friends");
+    res.send(loadedUser.friends);
 
     // res.send(user);
   } catch (err) {
@@ -479,7 +480,7 @@ router.put("/image", authenticate, async (req, res, next) => {
     );
     console.log(data);
     console.log("Successfull");
-    res.send(data);
+    res.send("Image added successfully");
   } catch (error) {
     console.log(error);
     next(error);

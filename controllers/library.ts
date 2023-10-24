@@ -28,19 +28,19 @@ const createLibrary = async (
     return lib;
   } catch (error) {
     console.log(error);
-    throw "something went wrong";
+    throw { code: 500, reason: "Something went wrong when creating a library" };
   }
 };
 
 const checkLibrarian = async (lib: Library, user: User) => {
   const librarian = await Librarian.findOneBy({ userId: user.id });
   if (librarian && librarian.library.id === lib.id) return true;
-  throw "That librarian isn't valid for this library";
+  throw { code: 400, reason: "That librarian isn't valid for this library" };
 };
 
 const getLibraryById = async (libId: number | string) => {
   if (typeof libId === "string") libId = parseInt(libId);
-  if (!libId) throw "Not a valid library id";
+  if (!libId) throw { code: 400, reason: "Not a valid library id" };
   const library = await Library.findOneBy({ id: libId });
   if (!library) {
     throw "No library with that id in our database";

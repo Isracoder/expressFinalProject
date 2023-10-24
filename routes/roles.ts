@@ -23,7 +23,8 @@ router.post(
       const role = new Role();
       role.name = req.body.name;
       await role.save();
-      res.send(`${routeName} created successfully`);
+      // res.send(`${routeName} created successfully`);
+      res.send(role);
     } catch (error) {
       console.log(error);
       baseLogger.error("Error while creating role");
@@ -83,7 +84,7 @@ router.put(
         req.body.id,
         libraryId
       );
-      res.send(`Role added successfully to user ` + user);
+      res.send(user);
     } catch (err) {
       console.log(err);
       baseLogger.error("Error while assigning role to user");
@@ -106,7 +107,7 @@ router.delete(
         req.body.id,
         libraryId
       );
-      res.send("Successfully deleted role from user" + user);
+      res.send(user);
     } catch (error) {
       console.log(error);
       baseLogger.error(
