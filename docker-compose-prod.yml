@@ -6,8 +6,8 @@ services:
     image: mysql
     environment:
       - MYSQL_ROOT_PASSWORD=$DB_PASSWORD
-      - MYSQL_ALLOW_EMPTY_PASSWORD=""
-      - MYSQL_DATABASE=final_project
+      # - MYSQL_ALLOW_EMPTY_PASSWORD=""
+      - MYSQL_DATABASE=$DB_NAME
     volumes:
       - db-data:/var/lib/mysql
     ports:
@@ -23,10 +23,11 @@ services:
     restart: always 
     environment:
       - PORT=80
-      - DB_HOST=mysql
-      - DB_USERNAME=root
+      # - DB_HOST=mysql
+      - DB_HOST=$DB_HOST
+      - DB_USERNAME=$DB_USERNAME
       - DB_PASSWORD=$DB_PASSWORD
-      - DB_NAME=final_project
+      - DB_NAME=$DB_NAME
     ports:
       - "80:80"
     # healthcheck:
