@@ -16,10 +16,9 @@ const dataSource = new DataSource({
   // name: "default",
   type: "mysql",
   host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT as string),
+  port: 3306,
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
-  // password: "",
   database: process.env.DB_NAME,
   entities: [
     User,
@@ -33,6 +32,9 @@ const dataSource = new DataSource({
     Librarian,
   ],
   synchronize: true,
+
+  // connectTimeout: 15000,
+
   // logging: true,
 });
 
