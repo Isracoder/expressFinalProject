@@ -32,10 +32,6 @@ const dataSource = new DataSource({
     Librarian,
   ],
   synchronize: true,
-
-  // connectTimeout: 15000,
-
-  // logging: true,
 });
 
 export const initialize = async () => {
@@ -43,19 +39,19 @@ export const initialize = async () => {
   return await dataSource
     .initialize()
     .then(() => {
-      console.log(process.env.DB_NAME);
-      console.log(process.env.DB_HOST);
-      console.log(process.env.DB_USERNAME);
-      console.log(process.env.DB_PASSWORD);
+      // console.log(process.env.DB_NAME);
+      // console.log(process.env.DB_HOST);
+      // console.log(process.env.DB_USERNAME);
+      // console.log(process.env.DB_PASSWORD);
 
       console.log("Connected to DB!");
       baseLogger.info("Connected to DB!");
     })
     .catch((err) => {
-      console.log(process.env.DB_NAME);
-      console.log(process.env.DB_HOST);
-      console.log(process.env.DB_USERNAME);
-      console.log(process.env.DB_PASSWORD);
+      // console.log(process.env.DB_NAME);
+      // console.log(process.env.DB_HOST);
+      // console.log(process.env.DB_USERNAME);
+      // console.log(process.env.DB_PASSWORD);
       console.error("Failed to connect to DB: ");
       console.log(err);
       baseLogger.error("Failed to connect to DB : " + err);

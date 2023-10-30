@@ -41,7 +41,7 @@ export class Book extends BaseEntity {
   pages: number;
 
   @Column({ nullable: false })
-  pubYear: number;
+  year: number;
 
   @Column({ nullable: false })
   language: string;

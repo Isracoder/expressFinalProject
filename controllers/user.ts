@@ -210,6 +210,16 @@ const getRecsFromFriends = async (
   }
 };
 
+const getUserIdByName = async (username: string) => {
+  try {
+    const user = await User.findOne({ where: { username: username } });
+    if (!user) throw { code: 404, reason: "No user found by that username" };
+    return user?.id;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export {
   login,
   createUser,
@@ -217,4 +227,5 @@ export {
   getUserById,
   removeRoleFromUser,
   getRecsFromFriends,
+  getUserIdByName,
 };

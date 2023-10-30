@@ -29,7 +29,7 @@ export class Library extends BaseEntity {
   id: number;
 
   @Column({
-    unique: true,
+    nullable: false,
   })
   name: string;
 

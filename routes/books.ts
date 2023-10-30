@@ -53,7 +53,7 @@ router.post(
       book.title = title;
       book.language = language;
       book.author = author;
-      book.pubYear = pubYear;
+      book.year = pubYear;
       // add more stuff for book
       await book.save();
       // book = {...book}

@@ -23,7 +23,7 @@ const getBooksByAttributes = async (
       { id: id },
       { language: language },
       { pages: pages },
-      { pubYear: pubYear },
+      { year: pubYear },
     ],
   });
   return arr;
@@ -61,7 +61,7 @@ const getBooksWith = async (
       addbook = false;
     if (language && book.language.toLowerCase() != language.toLowerCase())
       addbook = false;
-    if (pubYear && book.pubYear != pubYear) addbook = false;
+    if (pubYear && book.year != pubYear) addbook = false;
     if (addbook) books.push(book);
   });
   return books;
@@ -99,7 +99,7 @@ const getIdOfBooksWith = async (
       addbook = false;
     if (language && book.language.toLowerCase() != language.toLowerCase())
       addbook = false;
-    if (pubYear && book.pubYear != pubYear) addbook = false;
+    if (pubYear && book.year != pubYear) addbook = false;
     if (addbook) ids.push(book.id);
   });
   return ids;
