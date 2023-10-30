@@ -21,7 +21,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.set("view engine", "pug");
 app.get("/", (req, res) => {
-  res.send("Server UP!");
+  res.send("Server is up and running!!");
 });
 app.use(cookieParser());
 app.use("/users", userRouter);

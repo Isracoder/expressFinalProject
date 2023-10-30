@@ -16,7 +16,14 @@ book = {
 };
 ```
 
-Relations with other entities include : Genres , Libraries , Copies , Reviews , User (giveaway books) , User (wanted books)
+Relations with other entities include : Genres , Copies , Reviews , User (giveaway books) , User (wanted books)
+
+#### Possible error responses :
+
+- Error code : 400 , reason for rejection
+- Error code : 404 , "Invalid Request Path!"
+- Error code : 500 , "Something went wrong :( " , this is the generic default
+- Other custom codes with a message
 
 # Current available apis :
 

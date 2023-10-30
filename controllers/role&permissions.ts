@@ -12,37 +12,53 @@ import { Permission, PermissionName } from "../db/entities/Permission.js";
 dotenv.config();
 
 const getRolebyId = async (roleId: number | string) => {
-  if (typeof roleId === "string") roleId = parseInt(roleId);
-  if (!roleId) throw "Not a valid Role id";
-  const role = await Role.findOneBy({ id: roleId });
-  if (!role) {
-    throw "No Role with that id in our database";
+  try {
+    if (typeof roleId === "string") roleId = parseInt(roleId);
+    if (!roleId) throw { code: 400, reason: "Not a valid Role id" };
+    const role = await Role.findOneBy({ id: roleId });
+    if (!role) {
+      throw { code: 404, reason: "No Role with that id in our database" };
+    }
+    return role;
+  } catch (err) {
+    throw err;
   }
-  return role;
 };
 
 const getRolebyName = async (roleName: RoleType) => {
-  if (!Object.values(RoleType).includes(roleName)) throw "Invalid roleName";
-  const role = await Role.findOneBy({ name: roleName });
-  if (role) return role;
-  throw "No role with that name in the db"; // should i return -1 ?
+  try {
+    if (!Object.values(RoleType).includes(roleName)) throw "Invalid roleName";
+    const role = await Role.findOneBy({ name: roleName });
+    if (role) return role;
+    throw { code: 404, reason: "No role with that name in the db" };
+  } catch (err) {
+    throw err;
+  }
 };
 
 const getPermissionbyName = async (permName: PermissionName) => {
-  if (!Object.values(PermissionName).includes(permName))
-    throw "Invalid permission name";
-  const permission = await Permission.findOneBy({ name: permName });
-  if (permission) return permission;
-  throw "No permission with that name in the db"; // should i return -1 ?
+  try {
+    if (!Object.values(PermissionName).includes(permName))
+      throw { code: 400, reason: "Invalid permission name" };
+    const permission = await Permission.findOneBy({ name: permName });
+    if (permission) return permission;
+    throw { code: 404, reason: "No permission with that name in the db" };
+  } catch (err) {
+    throw err;
+  }
 };
 
 const getPermissionbyId = async (permId: number | string) => {
-  if (typeof permId === "string") permId = parseInt(permId);
-  if (!permId) throw "Not a valid Permission id";
-  const permission = await Permission.findOneBy({ id: permId });
-  if (!permission) {
-    throw "No Permission with that id in our database";
+  try {
+    if (typeof permId === "string") permId = parseInt(permId);
+    if (!permId) throw { code: 400, reason: "Not a valid Permission id" };
+    const permission = await Permission.findOneBy({ id: permId });
+    if (!permission) {
+      throw { code: 404, reason: "No Permission with that id in our database" };
+    }
+    return permission;
+  } catch (err) {
+    throw err;
   }
-  return permission;
 };
 export { getRolebyName, getRolebyId, getPermissionbyId, getPermissionbyName };

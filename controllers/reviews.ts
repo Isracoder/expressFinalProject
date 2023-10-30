@@ -13,25 +13,7 @@ const getReviewsAndName = async (userId: number) => {
     return reviews;
   } catch (err) {
     console.log(err);
-    throw "Problem while getting reviews for that user";
-  }
-};
-
-// not needed currently
-const getReviewsAndGenres = async (userId: number) => {
-  try {
-    const reviews = await dataSource
-      .getRepository(Review)
-      .createQueryBuilder("review")
-      .leftJoinAndSelect("review.user", "user")
-      .leftJoinAndSelect("review.book", "book")
-      .where("user.id = :userId", { userId })
-      .getMany();
-
-    return { reviews };
-  } catch (err) {
-    console.log(err);
-    throw "Problem while getting reviews for that user";
+    throw { code: 500, reason: "Problem while getting reviews for that user" };
   }
 };
 

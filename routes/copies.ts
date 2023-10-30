@@ -69,8 +69,7 @@ router.get("/book", async (req, res, next) => {
   try {
     const id = parseInt(req.body.bookId);
     if (!id) {
-      res.send("Send a valid bookId number");
-      return;
+      throw { code: 400, reason: "Send a valid bookId number" };
     }
     // const book = await getBookbyId(id);
     const copies = await Copy.find({

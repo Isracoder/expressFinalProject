@@ -20,6 +20,13 @@ enum copyStatus {
 
 Relations with other entities include : Books
 
+#### Possible error responses :
+
+- Error code : 400 , reason for rejection
+- Error code : 404 , "Invalid Request Path!"
+- Error code : 500 , "Something went wrong :( " , this is the generic default
+- Other custom codes with a message
+
 # Current available apis :
 
 ## 1. Creating a copy 🎈

@@ -39,10 +39,10 @@ const login = async (email: string, password: string) => {
 
       return { token, userName: user.username, id: user.id };
     } else {
-      throw "Invalid Username or password!";
+      throw { code: 400, reason: "Invalid Username or password!" };
     }
   } catch (error) {
-    throw "Invalid Username or password!";
+    throw { code: 400, reason: "Invalid Username or password!" };
   }
 };
 
@@ -73,19 +73,24 @@ const createUser = async (
     //   //   await transactionManager.save(profile);
     //   await transactionManager.save(user);
     // });
-    console.log("after transaction manager");
+    console.log("after creating a user");
     return user;
   } catch (error) {
     console.log(error);
-    throw "something went wrong when creating a user";
+    throw { code: 500, reason: "something went wrong when creating a user" };
   }
 };
 const getUserById = async (userId: number | string) => {
-  if (typeof userId == "string") userId = parseInt(userId);
-  if (!userId) throw "Not a valid input for the user id";
-  const user = await User.findOneBy({ id: userId });
-  if (user) return user;
-  throw "User not found";
+  try {
+    if (typeof userId == "string") userId = parseInt(userId);
+    if (!userId)
+      throw { code: 400, reason: "Not a valid input for the user id" };
+    const user = await User.findOneBy({ id: userId });
+    if (user) return user;
+    throw { code: 404, reason: "User not found" };
+  } catch (err) {
+    throw err;
+  }
 };
 
 const addRoleToUser = async (
@@ -108,7 +113,11 @@ const addRoleToUser = async (
         // user.roles = [...user.roles, role];
         if (role.name == RoleType.librarian) {
           if (!libraryId) {
-            throw "Send a library id to make this user a librarian of that library";
+            throw {
+              code: 400,
+              reason:
+                "Send a library id to make this user a librarian of that library",
+            };
           }
           const library = await getLibraryById(libraryId);
           const librarian = new Librarian();
@@ -122,17 +131,17 @@ const addRoleToUser = async (
         return user;
       } catch (error) {
         console.log(error);
-        throw "something went wrong";
+        throw { reason: "something went wrong" };
       }
       // return "everything okay" ;
     } else {
       // console.log(error);
       console.log("not able to find role and user");
-      throw "something went wrong";
+      throw { reason: "not able to find role or user" };
     }
   } catch (error) {
     console.log(error);
-    throw "something went wrong";
+    throw error;
   }
 };
 
@@ -155,13 +164,10 @@ const removeRoleFromUser = async (
       try {
         // user.roles = [...user.roles, role];
         if (role.name == RoleType.librarian) {
-          // if (!libraryId)
-          //   throw "Send a library id to make this user a librarian of";
-          // const library = await getLibraryById(libraryId);
-          // const librarian = new Librarian();
-          // librarian.library = library;
-          // librarian.userId = user.id;
-          // await librarian.save();
+          const librarian = await Librarian.findOne({
+            where: { userId: user.id },
+          });
+          await librarian?.remove();
         }
         user.roles = user.roles.filter((userRole) => userRole.id != role.id);
         await user.save();

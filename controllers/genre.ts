@@ -5,19 +5,27 @@ import dataSource from "../db/index.js";
 
 const getGenreByName = async (name: string) => {
   // const genre = await Genre.findOne({ where: { name: name } });
-  const genre = await dataSource
-    .createQueryBuilder()
-    .select("genre")
-    .from(Genre, "genre")
-    .where("LOWER(genre.name) = LOWER(:name)", { name })
-    .getOne();
-  if (!genre) throw "No genre by that name";
-  else return genre;
+  try {
+    const genre = await dataSource
+      .createQueryBuilder()
+      .select("genre")
+      .from(Genre, "genre")
+      .where("LOWER(genre.name) = LOWER(:name)", { name })
+      .getOne();
+    if (!genre) throw { code: 404, reason: "No genre by that name" };
+    return genre;
+  } catch (err) {
+    throw err;
+  }
 };
 
 const getBookGenres = async (bookId: number) => {
-  const book = await getBookbyId(bookId);
-  return book.genres;
+  try {
+    const book = await getBookbyId(bookId);
+    return book.genres;
+  } catch (err) {
+    throw err;
+  }
 };
 
 const getGenreCount = async (reviews: Review[]) => {

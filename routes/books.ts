@@ -5,6 +5,7 @@ const routeName = "Book";
 import { EntityTypes } from "../@types/entity.js";
 import { paginate, paginateList } from "../controllers/paginate.js";
 import {
+  createBook,
   getBookIdsByAttributes,
   getBookbyId,
   getBooksWith,
@@ -25,39 +26,22 @@ import {
   sendEmail,
 } from "../controllers/aws.js";
 import { PaginateEntityList } from "../@types/page.js";
-
-const validYear = (year: number) => {
-  const date = new Date();
-
-  if (isNaN(year) || year > date.getFullYear() || year < 1700) {
-    return false;
-  }
-  return true;
-};
+import { validateBook } from "../middlewares/validation/validBook.js";
 
 // adding a new book to the overall website , not for any specific library
 router.post(
   "/",
   authenticate,
   authorize(PermissionName.adminAccess),
+  validateBook,
   async (req, res, next) => {
     try {
-      const { title, author, language } = req.body;
-      const pubYear = parseInt(req.body.pubYear);
-      if (!validYear(pubYear) || !title || !author || !language) {
-        res.send(
-          "Please enter required book info correctly (pubYear , title , author , language) "
-        );
-      }
-      const book = new Book();
-      book.title = title;
-      book.language = language;
-      book.author = author;
-      book.year = pubYear;
-      // add more stuff for book
-      await book.save();
-      // book = {...book}
-
+      const book = await createBook(
+        req.body.title,
+        req.body.author,
+        req.body.language,
+        req.body.pubYear
+      );
       res.status(201).send(book);
     } catch (err) {
       console.log(err);

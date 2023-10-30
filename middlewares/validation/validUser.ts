@@ -19,7 +19,8 @@ const validateUser = (
 
   if (errorList.length) {
     return next({
-      code: "INVALID_INPUT",
+      code: 400,
+      reason: "Invalid_Input",
       message: errorList.join(" "),
     });
   }
