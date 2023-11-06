@@ -28,6 +28,12 @@ services:
       - DB_USERNAME=$DB_USERNAME
       - DB_PASSWORD=$DB_PASSWORD
       - DB_NAME=$DB_NAME
+      - SECRET_KEY=$SECRET_KEY
+      - AWS_ACCESS_KEY=$AWS_ACCESS_KEY
+      - AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+      - REGION=$REGION
+      - AWS_VERIFIED_SENDER=$AWS_VERIFIED_SENDER
+
     ports:
       - "80:80"
     # healthcheck:

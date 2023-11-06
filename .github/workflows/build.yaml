@@ -79,6 +79,12 @@ jobs:
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_NAME: ${{ secrets.DB_NAME }}
           GIT_VERSION: ${{ needs.build.outputs.image_version }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          REGION: ${{ secrets.REGION }}
+          AWS_VERIFIED_SENDER: ${{ secrets.AWS_VERIFIED_SENDER }}
+
       - name: print logs
         if: always()
         run: docker compose logs
