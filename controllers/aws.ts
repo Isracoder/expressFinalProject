@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import fs from "fs";
 import fetch from "node-fetch";
+import { add } from "winston";
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY,
@@ -101,6 +102,8 @@ const sendEmail = async (
   let addresses;
   if (typeof recipient == "string") addresses = [recipient];
   else addresses = [...recipient];
+
+  console.log(addresses);
   const params = {
     Destination: {
       ToAddresses: addresses,
@@ -128,6 +131,7 @@ const sendEmail = async (
     console.error("Error sending email:", error);
     throw "error";
   }
+  console.log("after try catch");
 };
 
 export {

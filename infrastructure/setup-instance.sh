@@ -34,4 +34,17 @@ github_pubkey='ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPyu4NHn4sv4cG0JcygjGj39rXTUb
 
 sudo -u github sh -c "mkdir -p /home/app/.ssh && echo $github_pubkey > /home/app/.ssh/authorized_keys"
 
-sudo reboot
+
+# Pull the Docker Compose file from your GitHub repository
+wget https://raw.githubusercontent.com/Isracoder/expressFinalProject/docker-compose-prod.yml
+
+docker login ghcr.io -u Isracoder -p "my personal access code"
+
+# Set environment variables
+export DB_PASSWORD="db-password"
+export DB_HOST="your-database-host"
+export DB_USERNAME="your-database-username"
+export DB_NAME="your-database-name"
+
+# Run the Docker Compose with the specific environment variables
+docker compose -f docker-compose-prod.yml -p expressfinalproject up -d
