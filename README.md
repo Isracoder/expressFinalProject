@@ -4,11 +4,20 @@ Final Project for the 100 day long intensive express and aws training by gsg.
 
 ## Online Library and Book Review Website 📖🫀
 
-##### Project Overview
+### Project Overview 📔
 
 My goal is to create a website that functions as a mix between other popular book collection
-websites (ex : Goodreads) and a local library website. My project should show books when you search for them
-and whether or not they are available in any nearby libraries (public or otherwise) 📖📜
+websites (ex : Goodreads) and a local library website.
+Users on this website can 📘:
+  - Befriend other users and connect with them
+  - Leave book reviews
+  - Search for books and check their availability in libraries near you
+  - Add books to lists (want-list , giveaway-list , etc...)
+  - Be notified when books you want are available nearby
+  - Understand your reading habits via graphs
+  - Get friend recommendations of books
+  - Upload image of a book and get the title
+  - Set up book swaps with other users
 
 <p align="center">
   <img src="https://i.pinimg.com/564x/27/ed/a9/27eda9aa1138ac8f631b4e06614a430e.jpg" alt="bookstoreImage"/>
@@ -22,7 +31,10 @@ The Project should :
 - Handle errors and include Unit tests
 - Optomize Performance
 
-## Project ERD
+## Technologies used 🤓💻 :
+To create the project api's I worked with nodejs and the express framework and to render the graphs I used the chartjs library.In terms of cloud services I worked with the AWS console using numerous resources such as EC2 instances, s3 buckets, RDS ,target groups, load balancers, and autoscale groups. I also made use of several cool aws services in my api's such as SES , and aws rekognition. To set up the CI/CD pipeline I used github actions. In addition to all of that I also employed docker containers inside my auto-scale group instances and would package the docker image and upload it via github actions to the github registry. 
+
+## Project ERD 🖋️💠
 
 ![alt text](./finalProjERD.drawio.svg)
 
@@ -50,7 +62,7 @@ The Project should :
 - deployment issues -> Overcame by myself
 - db connectivity issues after deployment -> Overcame it with the help of waleed
 
-## Api Documentation
+### Api Documentation
 
 There are several routes in the main index file , each of which I've created a separate docs page for :
 
